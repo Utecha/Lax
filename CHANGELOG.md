@@ -16,4 +16,13 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 
 ## 0.2.0
 
+##### New Files
+- clox_vm.c && clox_vm.h -- The beating heart, the VM.
 
+The VM is added here, but still at this point, the main function in 'clox.c' is still just hard-coded bytecode for testing. Operations that have been added are:
+- OP_CONSTANT
+- OP_ADD
+- OP_SUBTRACT
+- OP_MULTIPLY
+- OP_DIVIDE
+- OP_RETURN (acts as OP_PRINT and OP_EOF at the moment)

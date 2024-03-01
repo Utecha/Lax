@@ -5,6 +5,8 @@
 
 typedef double Value;
 
+#define UINT8_COUNT     (UINT8_MAX + 1)
+
 typedef struct {
     Value *values;
     int count;

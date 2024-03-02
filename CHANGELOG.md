@@ -11,6 +11,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.5.0](#0.5.0)
 - [0.5.5](#0.5.5)
 - [0.5.9](#0.5.9)
+- [0.6.0](#0.6.0)
 
 ## 0.1.0
 #### New Files
@@ -75,3 +76,7 @@ Variables are now supported. Of course, there are no blocks or anything like tha
 ## 0.5.9
 
 The reason this section exists is because the last time I tried implementing the local variables, it completely broke global variables. At this point, everything seems to be working as it should be. However, I fear that may not be the case when I implement the last bit of the chapter that fixes a specific edge case with scoping. I have suspicions it was in that section that things broke. It's a minor change overall (in terms of amount of code), but it does fundamentally change how the VM reacts to scoping. Hence, that is why it is '.1' shy of '0.6.0'.
+
+## 0.6.0
+
+It turns out I was incorrect. It was an error I made somewhere else in the code that was causing the issues my first time attempting the implementation. I'll have to spend the time to investigate what that may have been. Local and global variables are now a thing and do resolve correctly, even when they share a common identifier ('a' in the global scope and 'a' in the local scope are 2 different variables.)

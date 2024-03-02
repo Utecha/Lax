@@ -7,6 +7,7 @@ That brings me to clox++. This edition is going to have a handful of extra featu
 
 - Bitwise Operators
 - Modulo & Power
+- C-style increment/decrement (pre and post)
 - More built-in functions (printf being highest priority);
 - Support for variadic arguments
 - Support for multiple files featuring an 'include' keyword

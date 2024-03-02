@@ -36,8 +36,6 @@ typedef struct {
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
 #define OBJ_VAL(object)     ((Value){VAL_OBJ, {.obj = (Obj *)object}})
 
-#define UINT8_COUNT     (UINT8_MAX + 1)
-
 typedef struct {
     Value *values;
     int count;

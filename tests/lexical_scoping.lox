@@ -1,0 +1,11 @@
+var a = 69;
+var b = 420;
+
+{
+    var a = 500;
+    var b = 80;
+
+    print a - b;
+}
+
+print a * b;

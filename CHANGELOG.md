@@ -10,6 +10,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.4.5](#0.4.5)
 - [0.5.0](#0.5.0)
 - [0.5.5](#0.5.5)
+- [0.5.9](#0.5.9)
 
 ## 0.1.0
 #### New Files
@@ -70,3 +71,7 @@ At the moment, the hash table only supports strings. I may go back in later and 
 ## 0.5.5
 
 Variables are now supported. Of course, there are no blocks or anything like that yet, so up to this point, it's just global variables. They're also not handled in the most efficient way, and re-referencing a variable can actually take up space in the stack, causing the user to run out of instructions sooner.
+
+## 0.5.9
+
+The reason this section exists is because the last time I tried implementing the local variables, it completely broke global variables. At this point, everything seems to be working as it should be. However, I fear that may not be the case when I implement the last bit of the chapter that fixes a specific edge case with scoping. I have suspicions it was in that section that things broke. It's a minor change overall (in terms of amount of code), but it does fundamentally change how the VM reacts to scoping. Hence, that is why it is '.1' shy of '0.6.0'.

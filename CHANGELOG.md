@@ -4,6 +4,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 
 - [0.1.0](#0.1.0)
 - [0.2.0](#0.2.0)
+- [0.3.0](#0.3.0)
 
 ## 0.1.0
 ##### New Files
@@ -26,3 +27,16 @@ The VM is added here, but still at this point, the main function in 'clox.c' is 
 - OP_MULTIPLY
 - OP_DIVIDE
 - OP_RETURN (acts as OP_PRINT and OP_EOF at the moment)
+
+## 0.3.0
+
+##### New Files
+- clox_bcompiler.c && clox_bcompiler.h -- Named 'bcompiler' as this is the source that compiles the users code into bytecode.
+- clox_scanner.c && clox_scanner.h -- Named scanner just to fit with the book, but it's the lexer.
+
+No new ops added at this point. However, 'clox.c' has now been modified to be able to read from a source file, as well as run a basic REPL in the event that no source file was provided.
+```console
+$ Usage: clox <source>*
+```
+
+One major change I made is pass the structs around by pointer rather than instantiating them globally. This is the better method, and the author even mentions as such, so I've worked that in early on.

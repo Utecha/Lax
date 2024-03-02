@@ -1,5 +1,6 @@
 #include <stdio.h>
 
+#include "clox_bcompiler.h"
 #include "clox_common.h"
 #include "clox_debug.h"
 #include "clox_vm.h"
@@ -68,11 +69,11 @@ static InterpretResult run(VM *vm)
 #undef BINARY_OP
 }
 
-InterpretResult interpret(VM *vm, Chunk *chunk)
+InterpretResult interpret(VM *vm, const char *source)
 {
-    vm->chunk = chunk;
-    vm->ip = vm->chunk->code;
-    return run(vm);
+    Scanner scanner;
+    bCompile(&scanner, source);
+    return INTERPRET_OK;
 }
 
 void push(VM *vm, Value value)

@@ -8,6 +8,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.3.5](#0.3.5)
 - [0.4.0](#0.4.0)
 - [0.4.5](#0.4.5)
+- [0.5.0](#0.5.0)
 
 ## 0.1.0
 #### New Files
@@ -56,3 +57,11 @@ The new additions in this version are: '!', '!=', '==', '<', '<=', '>', '>=', bo
 - clox_object.c && clox_object.h -- Defines a new "Obj" type that represents large objects that need to be stored on the heap, such as strings.
 
 Apparently in the scanner I forgot to actually account for any 't' keywords, and as a result, forgot to add in 'TOKEN_TRUE'. As a result, entering 'true' in the repl or reading it from a file would throw a Lox error. That has been fixed as of this version. Everything should work now. Plus, you now have strings! And they can be concatenated! (Escape sequences coming later).
+
+## 0.5.0
+
+#### New Files
+
+- clox_table.c && clox_table.h -- Hash table implementations in C. Objects, especially strings, are now run through the hash table to keep track of key/value pairs. Speeds of comparing strings have improved as they are now compared by their hash rather than character by character directly.
+
+At the moment, the hash table only supports strings. I may go back in later and modify it to support the keys for the other primitive types: numbers, booleans, and nil.

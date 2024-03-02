@@ -5,59 +5,61 @@
 #include "clox_debug.h"
 #include "clox_vm.h"
 
-static void resetStack(VM *vm)
+VM vm;
+
+static void resetStack()
 {
-    vm->stackTop = vm->stack;
+    vm.stackTop = vm.stack;
 }
 
-void initVM(VM *vm)
+void initVM()
 {
-    resetStack(vm);
+    resetStack();
 }
 
-void freeVM(VM *vm)
+void freeVM()
 {
 
 }
 
-static InterpretResult run(VM *vm)
+static InterpretResult run()
 {
-#define READ_BYTE()         (*vm->ip++)
-#define READ_CONSTANT()     (vm->chunk->constants.values[READ_BYTE()])
+#define READ_BYTE()         (*vm.ip++)
+#define READ_CONSTANT()     (vm.chunk->constants.values[READ_BYTE()])
 
 #define BINARY_OP(op)               \
     do {                            \
         double b = pop(vm);         \
         double a = pop(vm);         \
-        push(vm, a op b);           \
+        push(a op b);               \
     } while (false)
 
     for (;;) {
 
 #ifdef DEBUG_TRACE_EXECUTION
         printf("          ");
-        for (Value *slot = vm->stack; slot < vm->stackTop; slot++) {
+        for (Value *slot = vm.stack; slot < vm.stackTop; slot++) {
             printf("[");
             printValue(*slot);
             printf("]");
         }
         printf("\n");
-        disassembleInstruction(vm->chunk, (int)(vm->ip - vm->chunk->code));
+        disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif // DEBUG_TRACE_EXECUTION
 
         uint8_t instruction;
         switch (instruction = READ_BYTE()) {
             case OP_CONSTANT: {
                 Value constant = READ_CONSTANT();
-                push(vm, constant);
+                push(constant);
             } break;
             case OP_ADD:            BINARY_OP(+); break;
             case OP_SUBTRACT:       BINARY_OP(-); break;
             case OP_MULTIPLY:       BINARY_OP(*); break;
             case OP_DIVIDE:         BINARY_OP(/); break;
-            case OP_NEGATE:         push(vm, -pop(vm)); break;
+            case OP_NEGATE:         push(-pop()); break;
             case OP_RETURN: {
-                printValue(pop(vm));
+                printValue(pop());
                 printf("\n");
                 return INTERPRET_OK;
             } break;
@@ -69,21 +71,40 @@ static InterpretResult run(VM *vm)
 #undef BINARY_OP
 }
 
-InterpretResult interpret(VM *vm, const char *source)
+InterpretResult interpret(const char *source)
 {
-    Scanner scanner;
-    bCompile(&scanner, source);
-    return INTERPRET_OK;
+    // Initialize the Chunk
+    Chunk chunk;
+    initChunk(&chunk);
+
+    // If the compiler fails, naturally, that's a
+    // compiler error.
+    if (!bCompile(&chunk, source)) {
+        freeChunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    // Update the VM's chunk and instruction pointer
+    // to that of the current chunk.
+    vm.chunk = &chunk;
+    vm.ip = vm.chunk->code;
+
+    // Interpret the result
+    InterpretResult result = run();
+
+    // Free the chunk's memory
+    freeChunk(&chunk);
+    return result;
 }
 
-void push(VM *vm, Value value)
+void push(Value value)
 {
-    *vm->stackTop = value;
-    vm->stackTop++;
+    *vm.stackTop = value;
+    vm.stackTop++;
 }
 
-Value pop(VM *vm)
+Value pop()
 {
-    vm->stackTop--;
-    return *vm->stackTop;
+    vm.stackTop--;
+    return *vm.stackTop;
 }

@@ -9,17 +9,17 @@ typedef enum {
     TOKEN_MINUS, TOKEN_PLUS,
     TOKEN_SEMICOLON,
     TOKEN_SLASH, TOKEN_STAR,
-    TOKEN_NOT, TOKEN_EQ,
-    TOKEN_GT, TOKEN_LT,
 
     // Two Character Tokens
-    TOKEN_NOTEQ, TOKEN_EQEQ,
-    TOKEN_GTEQ, TOKEN_LTEQ,
+    TOKEN_NOT, TOKEN_NOTEQ,
+    TOKEN_EQ, TOKEN_EQEQ,
+    TOKEN_LT, TOKEN_LTEQ,
+    TOKEN_GT, TOKEN_GTEQ,
 
     // Literals
     TOKEN_IDENTIFIER,
-    TOKEN_NUMBER,
     TOKEN_STRING,
+    TOKEN_NUMBER,
 
     // Keywords
     TOKEN_AND, TOKEN_CLASS,
@@ -48,7 +48,7 @@ typedef struct {
     int line;
 } Scanner;
 
-void initScanner(Scanner *scanner, const char *source);
-Token scanToken(Scanner *scanner);
+void initScanner(const char *source);
+Token scanToken();
 
 #endif // CLOX_SCANNER_H

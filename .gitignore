@@ -1,4 +1,8 @@
 build/debug/*
 build/objdump/*
 build/release/*
+srcBackup/
 clox
+cloxbak
+cloxdb
+cloxdbbak

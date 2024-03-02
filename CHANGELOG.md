@@ -5,6 +5,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.1.0](#0.1.0)
 - [0.2.0](#0.2.0)
 - [0.3.0](#0.3.0)
+- [0.3.5](#0.3.5)
 
 ## 0.1.0
 ##### New Files
@@ -39,4 +40,6 @@ No new ops added at this point. However, 'clox.c' has now been modified to be ab
 $ Usage: clox <source>*
 ```
 
-One major change I made is pass the structs around by pointer rather than instantiating them globally. This is the better method, and the author even mentions as such, so I've worked that in early on.
+## 0.3.5
+No new files in this one. Just a lot of updating to the previous ones. The bytecode compiler and VM are now up to a point of successful compilation and interpretation of that compiled bytecode. Simple instructions such as '5 + 5' will actually resolve as they should at this point.
+

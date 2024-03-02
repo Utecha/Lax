@@ -7,32 +7,31 @@
 #include "clox_debug.h"
 #include "clox_vm.h"
 
-static void repl(VM *vm);
-static void runFile(VM *vm, const char *path);
+static void repl();
+static void runFile(const char *path);
 static char *readFile(const char *path);
 
 int main(int argc, char **argv)
 {
     // Initialize the VM
-    VM vm;
-    initVM(&vm);
+    initVM();
 
     if (argc == 1) {
-        repl(&vm);
+        repl();
     } else if (argc == 2) {
-        runFile(&vm, argv[1]);
+        runFile(argv[1]);
     } else {
         fprintf(stderr, "Usage: clox <source>\n");
         exit(64);
     }
 
     // Free memory allocated by the VM
-    freeVM(&vm);
+    freeVM();
 
     return EXIT_SUCCESS;
 }
 
-static void repl(VM *vm)
+static void repl()
 {
     char line[1024];
     for (;;) {
@@ -43,14 +42,14 @@ static void repl(VM *vm)
             break;
         }
 
-        interpret(vm, line);
+        interpret(line);
     }
 }
 
-static void runFile(VM *vm, const char *path)
+static void runFile(const char *path)
 {
     char *source = readFile(path);
-    InterpretResult result = interpret(vm, source);
+    InterpretResult result = interpret(source);
     free(source);
 
     if (result == INTERPRET_COMPILE_ERROR) exit(65);

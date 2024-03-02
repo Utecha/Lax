@@ -2,7 +2,38 @@
 #define CLOX_BCOMPILER_H
 
 #include "clox_scanner.h"
+#include "clox_vm.h"
 
-void bCompile(Scanner *scanner, const char *source);
+typedef struct {
+    Token current;
+    Token previous;
+    bool hadError;
+    bool panicMode;
+} Parser;
+
+typedef enum {
+    PREC_NONE,
+    PREC_ASSIGNMENT,    // =
+    PREC_OR,            // or
+    PREC_AND,           // and
+    PREC_EQUALITY,      // == !=
+    PREC_COMPARISON,    // < > <= >=
+    PREC_TERM,          // + -
+    PREC_FACTOR,        // * /
+    PREC_UNARY,         // ! -
+    PREC_CALL,          // . ()
+    PREC_PRIMARY
+} Precedence;
+
+typedef void (*ParseFn)();
+
+typedef struct {
+    ParseFn prefix;
+    ParseFn infix;
+    // ParseFn postfix;
+    Precedence precedence;
+} ParseRule;
+
+bool bCompile(Chunk *chunk, const char *source);
 
 #endif // CLOX_BCOMPILER_H

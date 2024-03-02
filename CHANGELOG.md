@@ -12,6 +12,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.5.5](#0.5.5)
 - [0.5.9](#0.5.9)
 - [0.6.0](#0.6.0)
+- [0.6.5](#0.6.5)
 
 ## 0.1.0
 #### New Files
@@ -80,3 +81,9 @@ The reason this section exists is because the last time I tried implementing the
 ## 0.6.0
 
 It turns out I was incorrect. It was an error I made somewhere else in the code that was causing the issues my first time attempting the implementation. I'll have to spend the time to investigate what that may have been. Local and global variables are now a thing and do resolve correctly, even when they share a common identifier ('a' in the global scope and 'a' in the local scope are 2 different variables.)
+
+## 0.6.5
+
+- Added the main 3 control-flow structures: if-else statements, while loops, and for loops.
+- Several simple tests for the VM have been added. Each one specifically covers the operations added in each version. The while loop test, specifically, is the early implementation of the fibonacci sequence (also the fastest implementation of it!)
+

@@ -1,0 +1,5 @@
+var LOOP_MAX = 101;
+
+for (var i = 0; i < LOOP_MAX; i = i + 1) {
+    print "Hello over 100 times!";
+}

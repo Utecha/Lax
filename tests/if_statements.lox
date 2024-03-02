@@ -1,0 +1,13 @@
+var greeting;
+var language = "Spanish";
+
+if (language == "English") {
+    greeting = "Hello, ";
+} else if (language == "Spanish") {
+    greeting = "Hola, ";
+} else if (language == "German") {
+    greeting = "Hallo, ";
+}
+
+var name = "Chandler";
+print greeting + name + "!";

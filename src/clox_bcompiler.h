@@ -1,6 +1,7 @@
 #ifndef CLOX_BCOMPILER_H
 #define CLOX_BCOMPILER_H
 
+#include "clox_object.h"
 #include "clox_scanner.h"
 #include "clox_vm.h"
 

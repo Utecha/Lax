@@ -139,6 +139,7 @@ static TokenType identifierType()
                 }
             }
         } break;
+        case 't':   return checkKeyword(1, 3, "rue", TOKEN_TRUE);
         case 'v':   return checkKeyword(1, 2, "ar", TOKEN_VAR);
         case 'w':   return checkKeyword(1, 4, "hile", TOKEN_WHILE);
     }

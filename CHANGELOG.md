@@ -6,6 +6,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.2.0](#0.2.0)
 - [0.3.0](#0.3.0)
 - [0.3.5](#0.3.5)
+- [0.4.0](#0.4.0)
 
 ## 0.1.0
 ##### New Files
@@ -43,3 +44,8 @@ $ Usage: clox <source>*
 ## 0.3.5
 No new files in this one. Just a lot of updating to the previous ones. The bytecode compiler and VM are now up to a point of successful compilation and interpretation of that compiled bytecode. Simple instructions such as '5 + 5' will actually resolve as they should at this point.
 
+## 0.4.0
+
+Again, no new files. However, lots of changes were made. Value is no longer just a typedef for 'double', but is now its own type altogether, which tracks the actual type being passed in. Currently it is a union that supports boolean and number values. As a result, several macros were made in order to type check and type cast the values.
+
+The new additions in this version are: '!', '!=', '==', '<', '<=', '>', '>=', booleans ('true' and 'false' as literals), and nil ('nil' as a literal).

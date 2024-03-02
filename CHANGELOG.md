@@ -87,3 +87,11 @@ It turns out I was incorrect. It was an error I made somewhere else in the code 
 - Added the main 3 control-flow structures: if-else statements, while loops, and for loops.
 - Several simple tests for the VM have been added. Each one specifically covers the operations added in each version. The while loop test, specifically, is the early implementation of the fibonacci sequence (also the fastest implementation of it!)
 
+## 0.7.0
+- Added the support backbone for functions. It has replaced or required an update to quite a bit of the code.
+
+One major change is that the size of the VM stack has been increased 64x, as it now needs to hold functions. Functions run on call frames which are like snapshots of the functions.
+
+Another thing you may notice (if you have debug on), is that there is a value ```<Script>``` that is firmly placed at index 0 on the VM's stack. That is a reference to the top-level "main" function of the code. The entire script is now considered to be a function in itself, and therefore the first slot in the stack is reserved for that top-level function.
+
+I'm going ahead and calling this '0.7.0' and committing at this point as a potential backup point. There was a lot that changed and there is still a lot more to add to finish implementing functions as a whole.

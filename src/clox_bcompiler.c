@@ -11,11 +11,10 @@
 
 Parser parser;
 Compiler *current = NULL;
-Chunk *compilingChunk;
 
 static Chunk *currentChunk()
 {
-    return compilingChunk;
+    return &current->function->chunk;
 }
 
 static void errorAt(Token *token, const char *message)
@@ -146,21 +145,33 @@ static void patchJump(int offset)
     currentChunk()->code[offset + 1] = jump & 0xff;
 }
 
-static void initbCompiler(Compiler *compiler)
+static void initbCompiler(Compiler *compiler, FunctionType type)
 {
+    compiler->function = NULL;
+    compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
+    compiler->function = newFunction();
     current = compiler;
+
+    Local *local = &current->locals[current->localCount++];
+    local->depth = 0;
+    local->name.start = "";
+    local->name.length = 0;
 }
 
-static void endCompiler()
+static ObjFunction *endCompiler()
 {
     emitReturn();
+    ObjFunction *function = current->function;
+
 #ifdef DEBUG_PRINT_CODE
     if (!parser.hadError) {
-        disassembleChunk(currentChunk(), "ByteCode");
+        disassembleChunk(currentChunk(), function->name != NULL ? function->name->chars : "<Script>");
     }
 #endif // DEBUG_PRINT_CODE
+
+    return function;
 }
 
 static void beginScope()
@@ -631,16 +642,14 @@ static void statement()
     }
 }
 
-bool bCompile(Chunk *chunk, const char *source)
+ObjFunction *bCompile(const char *source)
 {
     // Initialize the Scanner
     initScanner(source);
 
     // Initialize the Compiler
     Compiler compiler;
-    initbCompiler(&compiler);
-
-    compilingChunk = chunk;
+    initbCompiler(&compiler, TYPE_SCRIPT);
 
     parser.hadError = false;
     parser.panicMode = false;
@@ -652,8 +661,6 @@ bool bCompile(Chunk *chunk, const char *source)
         declaration();
     }
 
-    // End compilation
-    endCompiler();
-
-    return !parser.hadError;
+    ObjFunction *function = endCompiler();
+    return parser.hadError ? NULL : function;
 }

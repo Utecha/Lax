@@ -9,6 +9,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.4.0](#0.4.0)
 - [0.4.5](#0.4.5)
 - [0.5.0](#0.5.0)
+- [0.5.5](#0.5.5)
 
 ## 0.1.0
 #### New Files
@@ -65,3 +66,7 @@ Apparently in the scanner I forgot to actually account for any 't' keywords, and
 - clox_table.c && clox_table.h -- Hash table implementations in C. Objects, especially strings, are now run through the hash table to keep track of key/value pairs. Speeds of comparing strings have improved as they are now compared by their hash rather than character by character directly.
 
 At the moment, the hash table only supports strings. I may go back in later and modify it to support the keys for the other primitive types: numbers, booleans, and nil.
+
+## 0.5.5
+
+Variables are now supported. Of course, there are no blocks or anything like that yet, so up to this point, it's just global variables. They're also not handled in the most efficient way, and re-referencing a variable can actually take up space in the stack, causing the user to run out of instructions sooner.

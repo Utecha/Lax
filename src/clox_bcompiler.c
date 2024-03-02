@@ -113,6 +113,7 @@ static int emitJump(uint8_t instruction)
 
 static void emitReturn()
 {
+    emitByte(OP_NIL);
     emitByte(OP_RETURN);
 }
 
@@ -147,12 +148,17 @@ static void patchJump(int offset)
 
 static void initbCompiler(Compiler *compiler, FunctionType type)
 {
+    compiler->enclosing = current;
     compiler->function = NULL;
     compiler->type = type;
     compiler->localCount = 0;
     compiler->scopeDepth = 0;
     compiler->function = newFunction();
     current = compiler;
+    if (type != TYPE_SCRIPT) {
+        current->function->name = copyString(parser.previous.start,
+                                             parser.previous.length);
+    }
 
     Local *local = &current->locals[current->localCount++];
     local->depth = 0;
@@ -171,6 +177,7 @@ static ObjFunction *endCompiler()
     }
 #endif // DEBUG_PRINT_CODE
 
+    current = current->enclosing;
     return function;
 }
 
@@ -262,6 +269,7 @@ static uint8_t parseVariable(const char *message)
 
 static void markInitialized()
 {
+    if (current->scopeDepth == 0) return;
     current->locals[current->localCount - 1].depth = current->scopeDepth;
 }
 
@@ -275,6 +283,27 @@ static void defineVariable(uint8_t global)
     emitBytes(OP_DEFINE_GLOBAL, global);
 }
 
+static void expression();
+
+static uint8_t argumentList()
+{
+    uint8_t argCount = 0;
+    if (!check(TOKEN_RPAREN)) {
+        do {
+            expression();
+
+            if (argCount == 255) {
+                error("Can't have more than 255 arguments.");
+            }
+
+            argCount++;
+        } while (match(TOKEN_COMMA));
+    }
+
+    consume(TOKEN_RPAREN, "Expected ')' after arguments.");
+    return argCount;
+}
+
 static void and_(bool canAssign)
 {
     int endJump = emitJump(OP_JUMP_IF_FALSE);
@@ -285,7 +314,6 @@ static void and_(bool canAssign)
     patchJump(endJump);
 }
 
-static void expression();
 static void declaration();
 static void statement();
 static ParseRule *getRule(TokenType type);
@@ -309,6 +337,12 @@ static void binary(bool canAssign)
         case TOKEN_SLASH:   emitByte(OP_DIVIDE); break;
         default:            return; // Unreachable
     }
+}
+
+static void call(bool canAssign)
+{
+    uint8_t argCount = argumentList();
+    emitBytes(OP_CALL, argCount);
 }
 
 static void literal(bool canAssign)
@@ -392,7 +426,7 @@ static void unary(bool canAssign)
 }
 
 ParseRule rules[] = {
-    [TOKEN_LPAREN]     = { grouping,   NULL,    PREC_NONE },
+    [TOKEN_LPAREN]     = { grouping,   call,    PREC_CALL },
     [TOKEN_RPAREN]     = { NULL,       NULL,    PREC_NONE },
     [TOKEN_LBRACE]     = { NULL,       NULL,    PREC_NONE },
     [TOKEN_RBRACE]     = { NULL,       NULL,    PREC_NONE },
@@ -474,6 +508,40 @@ static void block()
     }
 
     consume(TOKEN_RBRACE, "Expected '}' after block.");
+}
+
+static void function(FunctionType type)
+{
+    Compiler compiler;
+    initbCompiler(&compiler, type);
+    beginScope();
+
+    consume(TOKEN_LPAREN, "Expected '(' after function name.");
+    if (!check(TOKEN_RPAREN)) {
+        do {
+            current->function->arity++;
+            if (current->function->arity > 255) {
+                errorAtCurrent("Can't have more than 255 parameters.");
+            }
+
+            uint8_t constant = parseVariable("Expected parameter name.");
+            defineVariable(constant);
+        } while (match(TOKEN_COMMA));
+    }
+    consume(TOKEN_RPAREN, "Expected ')' after parameters.");
+    consume(TOKEN_LBRACE, "Expected '{' before function body.");
+    block();
+
+    ObjFunction *function = endCompiler();
+    emitBytes(OP_CONSTANT, makeConstant(OBJ_VAL(function)));
+}
+
+static void funDeclaration()
+{
+    uint8_t global = parseVariable("Expected function name.");
+    markInitialized();
+    function(TYPE_FUNCTION);
+    defineVariable(global);
 }
 
 static void varDeclaration()
@@ -571,6 +639,21 @@ static void printStatement()
     emitByte(OP_PRINT);
 }
 
+static void returnStatement()
+{
+    if (current->type == TYPE_SCRIPT) {
+        error("Can't return from top-level code.");
+    }
+
+    if (match(TOKEN_SEMICOLON)) {
+        emitReturn();
+    } else {
+        expression();
+        consume(TOKEN_SEMICOLON, "Expected ';' after return value.");
+        emitByte(OP_RETURN);
+    }
+}
+
 static void whileStatement()
 {
     int loopStart = currentChunk()->count;
@@ -614,7 +697,9 @@ static void synchronize()
 
 static void declaration()
 {
-    if (match(TOKEN_VAR)) {
+    if (match(TOKEN_FUN)) {
+        funDeclaration();
+    } else if (match(TOKEN_VAR)) {
         varDeclaration();
     } else {
         statement();
@@ -631,6 +716,8 @@ static void statement()
         forStatement();
     } else if (match(TOKEN_IF)) {
         ifStatement();
+    } else if (match(TOKEN_RETURN)) {
+        returnStatement();
     } else if (match(TOKEN_WHILE)) {
         whileStatement();
     } else if (match(TOKEN_LBRACE)) {

@@ -1,15 +1,20 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include <time.h>
 
 #include "clox_bcompiler.h"
 #include "clox_common.h"
 #include "clox_debug.h"
 #include "clox_memory.h"
-#include "clox_object.h"
 #include "clox_vm.h"
 
 VM vm;
+
+static Value clockNative(int argCount, Value *args)
+{
+    return NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
+}
 
 static void resetStack()
 {
@@ -25,11 +30,29 @@ static void runtimeError(const char *fmt, ...)
     va_end(args);
     fputs("\n", stderr);
 
-    CallFrame *frame = &vm.frames[vm.frameCount - 1];
-    size_t instruction = frame->ip - frame->function->chunk.code - 1;
-    int line = frame->function->chunk.lines[instruction];
-    fprintf(stderr, "[line %d] in script\n", line);
+    for (int i = vm.frameCount - 1; i >= 0; i--) {
+        CallFrame *frame = &vm.frames[i];
+        ObjFunction *function = frame->function;
+        size_t instruction = frame->ip - function->chunk.code - 1;
+        fprintf(stderr, "[line %d] in ", function->chunk.lines[instruction]);
+
+        if (function->name == NULL) {
+            fprintf(stderr, "Script\n");
+        } else {
+            fprintf(stderr, "%s()\n", function->name->chars);
+        }
+    }
+
     resetStack();
+}
+
+static void defineNative(const char *name, NativeFn function)
+{
+    push(OBJ_VAL(copyString(name, (int)strlen(name))));
+    push(OBJ_VAL(newNative(function)));
+    tableSet(&vm.globals, AS_STRING(vm.stack[0]), vm.stack[1]);
+    pop();
+    pop();
 }
 
 void initVM()
@@ -39,6 +62,8 @@ void initVM()
 
     initTable(&vm.globals);
     initTable(&vm.strings);
+
+    defineNative("clock", clockNative);
 }
 
 void freeVM()
@@ -48,9 +73,81 @@ void freeVM()
     freeObjects();
 }
 
-static Value peek(int distance);
-static bool isFalsey(Value value);
-static void concatenate();
+void push(Value value)
+{
+    *vm.stackTop = value;
+    vm.stackTop++;
+}
+
+Value pop()
+{
+    vm.stackTop--;
+    return *vm.stackTop;
+}
+
+static Value peek(int distance)
+{
+    return vm.stackTop[-1 - distance];
+}
+
+static bool call(ObjFunction *function, int argCount)
+{
+    if (argCount != function->arity) {
+        runtimeError("Expected %d arguments but got %d.", function->arity, argCount);
+        return false;
+    }
+
+    if (vm.frameCount == FRAMES_MAX) {
+        runtimeError("Stack overflow!");
+        return false;
+    }
+
+    CallFrame *frame = &vm.frames[vm.frameCount++];
+    frame->function = function;
+    frame->ip = function->chunk.code;
+    frame->slots = vm.stackTop - argCount - 1;
+    return true;
+}
+
+static bool callValue(Value callee, int argCount)
+{
+    if (IS_OBJ(callee)) {
+        switch (OBJ_TYPE(callee)) {
+            case OBJ_FUNCTION:  return call(AS_FUNCTION(callee), argCount);
+            case OBJ_NATIVE: {
+                NativeFn native = AS_NATIVE(callee);
+                Value result = native(argCount, vm.stackTop - argCount);
+                vm.stackTop -= argCount + 1;
+                push(result);
+                return true;
+            } break;
+            default:            break; // Non-callable object type
+        }
+    }
+
+    runtimeError("Can only call classes and/or functions.");
+    return false;
+}
+
+static bool isFalsey(Value value)
+{
+    return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
+static void concatenate()
+{
+    ObjString *b = AS_STRING(pop());
+    ObjString *a = AS_STRING(pop());
+
+    int length = a->length + b->length;
+    char *chars = ALLOCATE(char, length + 1);
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+
+    ObjString *result = takeString(chars, length);
+    push(OBJ_VAL(result));
+}
 
 static InterpretResult run()
 {
@@ -180,9 +277,28 @@ static InterpretResult run()
                 uint16_t offset = READ_SHORT();
                 frame->ip -= offset;
             } break;
+            case OP_CALL: {
+                int argCount = READ_BYTE();
+                if (!callValue(peek(argCount), argCount)) {
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                frame = &vm.frames[vm.frameCount - 1];
+            } break;
             case OP_RETURN: {
-                // Exit interpreter, all is well
-                return INTERPRET_OK;
+                Value result = pop();
+                vm.frameCount--;
+
+                if (vm.frameCount == 0) {
+                    pop();
+                    // You've reached the end of the "main" script function
+                    // successfully. Exit's the interpreter.
+                    return INTERPRET_OK;
+                }
+
+                vm.stackTop = frame->slots;
+                push(result);
+                frame = &vm.frames[vm.frameCount - 1];
             } break;
         }
     }
@@ -200,47 +316,7 @@ InterpretResult interpret(const char *source)
     if (function == NULL) return INTERPRET_COMPILE_ERROR;
 
     push(OBJ_VAL(function));
-    CallFrame *frame = &vm.frames[vm.frameCount++];
-    frame->function = function;
-    frame->ip = function->chunk.code;
-    frame->slots = vm.stack;
+    call(function, 0);
 
     return run();
-}
-
-void push(Value value)
-{
-    *vm.stackTop = value;
-    vm.stackTop++;
-}
-
-Value pop()
-{
-    vm.stackTop--;
-    return *vm.stackTop;
-}
-
-static Value peek(int distance)
-{
-    return vm.stackTop[-1 - distance];
-}
-
-static bool isFalsey(Value value)
-{
-    return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
-}
-
-static void concatenate()
-{
-    ObjString *b = AS_STRING(pop());
-    ObjString *a = AS_STRING(pop());
-
-    int length = a->length + b->length;
-    char *chars = ALLOCATE(char, length + 1);
-    memcpy(chars, a->chars, a->length);
-    memcpy(chars + a->length, b->chars, b->length);
-    chars[length] = '\0';
-
-    ObjString *result = takeString(chars, length);
-    push(OBJ_VAL(result));
 }

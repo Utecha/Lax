@@ -13,6 +13,8 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.5.9](#0.5.9)
 - [0.6.0](#0.6.0)
 - [0.6.5](#0.6.5)
+- [0.7.0](#0.7.0)
+- [0.7.4](#0.7.4)
 
 ## 0.1.0
 #### New Files
@@ -95,3 +97,12 @@ One major change is that the size of the VM stack has been increased 64x, as it 
 Another thing you may notice (if you have debug on), is that there is a value ```<Script>``` that is firmly placed at index 0 on the VM's stack. That is a reference to the top-level "main" function of the code. The entire script is now considered to be a function in itself, and therefore the first slot in the stack is reserved for that top-level function.
 
 I'm going ahead and calling this '0.7.0' and committing at this point as a potential backup point. There was a lot that changed and there is still a lot more to add to finish implementing functions as a whole.
+
+## 0.7.4
+Functions are fully implemented, complete with return statements.. However, there definitely is a bug somewhere. I attempted to test functions using a recursive fibonacci function and it went into an endless loop. Hence, that is why it is at '0.7.4' and not '0.7.5'. That, and the fact that I haven't added in the native functions yet either. I'd rather go back and figure out the bugs in user function declarations first. Alas, I am tired and must take a break at this point. '0.7.5' will be after the bug fix. I plan on taking liberty sooner rather than later when it comes to implementing native functions to the language. The main one that I care about will be a little tough, as it'll involve implementing variadic arguments into Lox somehow or another. Maybe not, though. I might be able to piggy-back off of C's printf.
+
+## 0.7.5
+
+Good news, everyone! It turns out I'm just a dummy dumb dumb and functions weren't actually broken *at all*. They work just fine, including that recursive fibonacci test, as you'll see I've re-updated it to that, also featuring the new native clock function! (Not really new to Lox but... new for me in this version of the project up to this point.)
+
+Speaking of that recursive fibonacci test, the times I got were far more drastic for than that of the author, likely due to different hardware. For me, jlox took roughly 104 seconds to complete 40 cycles. clox++ completed the same exact script in about 12 seconds (rounding up, it was actually about 11.6)! That's a 12x boost in speed for such recursion! Keep in mind though, the more you add, it will still get EXPONENTIALLY slower. I found that the threshold began around 37 when it started slowing down by about 1.7x each time.

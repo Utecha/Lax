@@ -15,6 +15,8 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.6.5](#0.6.5)
 - [0.7.0](#0.7.0)
 - [0.7.4](#0.7.4)
+- [0.7.5](#0.7.5)
+- [0.8.0](#0.8.0)
 
 ## 0.1.0
 #### New Files
@@ -106,3 +108,8 @@ Functions are fully implemented, complete with return statements.. However, ther
 Good news, everyone! It turns out I'm just a dummy dumb dumb and functions weren't actually broken *at all*. They work just fine, including that recursive fibonacci test, as you'll see I've re-updated it to that, also featuring the new native clock function! (Not really new to Lox but... new for me in this version of the project up to this point.)
 
 Speaking of that recursive fibonacci test, the times I got were far more drastic for than that of the author, likely due to different hardware. For me, jlox took roughly 104 seconds to complete 40 cycles. clox++ completed the same exact script in about 12 seconds (rounding up, it was actually about 11.6)! That's a 12x boost in speed for such recursion! Keep in mind though, the more you add, it will still get EXPONENTIALLY slower. I found that the threshold began around 37 when it started slowing down by about 1.7x each time.
+
+## 0.8.0
+Closures have now been implemented. I added a few test programs to test out the functionality. In order, the results of each should be 'Outer', 'Outer', and 'Updated'.
+
+This is the final point in the book before the addition of the Garbage Collector. The language up to this point is still pretty open in terms of memory allocation and deallocation. Not everything is handled completely. That will change with the next update.

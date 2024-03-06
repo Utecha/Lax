@@ -1,0 +1,16 @@
+var globalSet;
+var globalGet;
+
+fun main() {
+    var a = "Initial";
+
+    fun set() { a = "Updated"; }
+    fun get() { print a; }
+
+    globalSet = set;
+    globalGet = get;
+}
+
+main();
+globalSet();
+globalGet();

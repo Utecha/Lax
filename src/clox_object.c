@@ -50,6 +50,13 @@ static uint32_t hashString(const char *key, int length)
     return hash;
 }
 
+ObjClass *newClass(ObjString *name)
+{
+    ObjClass *class = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+    class->name = name;
+    return class;
+}
+
 ObjUpvalue *newUpvalue(Value *slot)
 {
     ObjUpvalue *upvalue = ALLOCATE_OBJ(ObjUpvalue, OBJ_UPVALUE);
@@ -82,6 +89,14 @@ ObjFunction *newFunction()
     function->name = NULL;
     initChunk(&function->chunk);
     return function;
+}
+
+ObjInstance *newInstance(ObjClass *class)
+{
+    ObjInstance *instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+    instance->class = class;
+    initTable(&instance->fields);
+    return instance;
 }
 
 ObjNative *newNative(NativeFn function)
@@ -129,9 +144,13 @@ static void printFunction(ObjFunction *function)
 void printObject(Value value)
 {
     switch (OBJ_TYPE(value)) {
+        case OBJ_CLASS:     printf("%s", AS_CLASS(value)->name->chars); break;
         case OBJ_CLOSURE:   printFunction(AS_CLOSURE(value)->function); break;
         case OBJ_FUNCTION:  printFunction(AS_FUNCTION(value)); break;
-        case OBJ_NATIVE:    printf("<native fn>"); break;
+        case OBJ_INSTANCE: {
+            printf("Instance of %s", AS_INSTANCE(value)->class->name->chars);
+        } break;
+        case OBJ_NATIVE:    printf("<fn native>"); break;
         case OBJ_STRING:    printf("%s", AS_CSTRING(value)); break;
         case OBJ_UPVALUE:   printf("upvalue"); break;
         default:            return; // Unreachable

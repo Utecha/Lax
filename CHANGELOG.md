@@ -18,6 +18,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.7.5](#0.7.5) | Confirmed functions are implemented properly
 - [0.8.0](#0.8.0) | Implemented closures for functions
 - [0.9.0](#0.9.0) | Implemented the Garbage Collector
+- [0.9.25](#0.9.25) | Implemented the base for classes and instances of classes
 
 ## 0.1.0
 #### New Files
@@ -125,3 +126,9 @@ The reason that is of note is due to the GC implementation. It is a Mark-Sweep s
 Keep in mind, however, that I have not -- by this point -- done extensive testing on it with much more complicated programs. I plan on waiting until the end of the book (just before optimizations but after the addition of classes and methods) to do such hardcore stress testing.
 
 I will also note now that I plan on adding at least some, though likely the majority of the extra features I would like in the language BEFORE the 'Optimization' chapter.
+
+## 0.9.25
+
+Classes and instances of classes are now implemented as of this version. You can now define very simple classes (sort of loose C struct-like objects at the moment). When you create an instance, you can define fields for it through dot notation. Up to this point, this is the only way to implement fields on classes as initializers have not been implemented yet (those will come with the implementation of methods).
+
+A new simple test case (classes.lox) has been added to showcase how it works at this point in the implementation.

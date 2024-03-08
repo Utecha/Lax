@@ -7,6 +7,7 @@ typedef struct Obj Obj;
 typedef struct ObjString ObjString;
 
 typedef enum {
+    VAL_BAD,
     VAL_NIL,
     VAL_BOOL,
     VAL_NUMBER,
@@ -33,6 +34,7 @@ typedef struct {
 
 #define BOOL_VAL(value)     ((Value){VAL_BOOL, {.boolean = value}})
 #define NIL_VAL             ((Value){VAL_NIL, {.number = 0}})
+#define BAD_VAL             ((Value){VAL_BAD, {.number = -1}})
 #define NUMBER_VAL(value)   ((Value){VAL_NUMBER, {.number = value}})
 #define OBJ_VAL(object)     ((Value){VAL_OBJ, {.obj = (Obj *)object}})
 

@@ -20,6 +20,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.9.0](#0.9.0) | Implemented the Garbage Collector
 - [0.9.25](#0.9.25) | Implemented the base for classes and instances of classes
 - [0.9.75](#0.9.75) | Classes and methods fully implemented, minus inheritance.
+- [0.10.0](#0.10.0) | Inheritance added. Language is now complete (up to the original Lox spec)
 
 ## 0.1.0
 #### New Files
@@ -143,3 +144,7 @@ Fields can even be initialized with functions or classes (e.g. ```self.name = na
 The test was yoinked from [loxlox](#https://github.com/benhoyt/loxlox) which is a self-hosted implementation of Lox done by user 'benhoyt' on github. He had to implement those himself for Lox since they are not implemented in the language directly, and they're a great example of how to take advantage of the lox language as a whole, really. It of course makes use of classes, as well as initializing fields with functions/classes, and even nests a function inside of a method. And, since it is a test case, the classes (well, just the list one for now), are actually instantiated and invoked at the end to test their functionality so you get a basic taste of how it works.
 
 One final note: Not only due to the base language used to implement this (C instead of Java), but due to a small optimization, invoking methods are significantly faster than jlox.
+
+## 0.10.0
+
+It is now complete! Inheritance has been implemented. Faithful to the original, clox is complete. I have not yet gone on to the Chapter on Optimization though. I plan to do so after I've added a few new things to the language.

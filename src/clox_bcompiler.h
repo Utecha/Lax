@@ -66,6 +66,7 @@ typedef struct Compiler {
 
 typedef struct ClassCompiler {
     struct classCompiler *enclosing;
+    bool hasSuperclass;
 } ClassCompiler;
 
 ObjFunction *bCompile(const char *source);

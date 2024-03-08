@@ -4,6 +4,7 @@
 
 #include "clox_bcompiler.h"
 #include "clox_common.h"
+#include "clox_memory.h"
 
 #ifdef DEBUG_PRINT_CODE
 #include "clox_debug.h"
@@ -804,4 +805,13 @@ ObjFunction *bCompile(const char *source)
 
     ObjFunction *function = endCompiler();
     return parser.hadError ? NULL : function;
+}
+
+void markbCompilerRoots()
+{
+    Compiler *compiler = current;
+    while (compiler != NULL) {
+        markObject((Obj *)compiler->function);
+        compiler = compiler->enclosing;
+    }
 }

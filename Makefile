@@ -7,8 +7,7 @@ SOURCES := $(wildcard $(SOURCE_DIR)/*.c)
 SOURCESBAK := $(wildcard $(SOURCE_BAK_DIR)/*.c)
 OBJECTS := $(notdir $(SOURCES:.c=.o))
 
-all: default obj_dump backup
-default: clox
+all: clox obj_dump backup
 backup: rel_from_backup
 
 clox: debug

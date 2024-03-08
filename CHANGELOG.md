@@ -2,21 +2,22 @@
 
 Each section is denoted by the version number it corresponds to. Below is a table of contents for quickly jumping between sections:
 
-- [0.1.0](#0.1.0)
-- [0.2.0](#0.2.0)
-- [0.3.0](#0.3.0)
-- [0.3.5](#0.3.5)
-- [0.4.0](#0.4.0)
-- [0.4.5](#0.4.5)
-- [0.5.0](#0.5.0)
-- [0.5.5](#0.5.5)
-- [0.5.9](#0.5.9)
-- [0.6.0](#0.6.0)
-- [0.6.5](#0.6.5)
-- [0.7.0](#0.7.0)
-- [0.7.4](#0.7.4)
-- [0.7.5](#0.7.5)
-- [0.8.0](#0.8.0)
+- [0.1.0](#0.1.0) | The Beginning
+- [0.2.0](#0.2.0) | Introducing the VM and basic instructions
+- [0.3.0](#0.3.0) | Lexer (Scanner) and Bytecode Compiler added
+- [0.3.5](#0.3.5) | bCompiler && VM hooked up and interpreting simple expressions
+- [0.4.0](#0.4.0) | Initial introduction of dynamic typing
+- [0.4.5](#0.4.5) | Introduced new generic "Obj" type for heap-allocated code
+- [0.5.0](#0.5.0) | Implemented Hash Table for better managing values such as strings
+- [0.5.5](#0.5.5) | Implemented global variables and the essence of global scoping
+- [0.5.9](#0.5.9) | Nearly finished implementing local scopes (read the section)
+- [0.6.0](#0.6.0) | Finished implementing local scopes (read the section)
+- [0.6.5](#0.6.5) | Added the control-flow constructs: if-else statements, while, and for loops
+- [0.7.0](#0.7.0) | Begin function implementation. File is itself now an implicit 'main' function.
+- [0.7.4](#0.7.4) | Functions fully implemented (this version exists because I thought they were broken, see 0.7.5)
+- [0.7.5](#0.7.5) | Confirmed functions are implemented properly
+- [0.8.0](#0.8.0) | Implemented closures for functions
+- [0.9.0](#0.9.0) | Implemented the Garbage Collector
 
 ## 0.1.0
 #### New Files
@@ -105,7 +106,7 @@ Functions are fully implemented, complete with return statements.. However, ther
 
 ## 0.7.5
 
-Good news, everyone! It turns out I'm just a dummy dumb dumb and functions weren't actually broken *at all*. They work just fine, including that recursive fibonacci test, as you'll see I've re-updated it to that, also featuring the new native clock function! (Not really new to Lox but... new for me in this version of the project up to this point.)
+Good news, everyone! It turns out I'm just a dummy dumb dumb and functions weren't actually broken *at all*. They work just fine, including that recursive fibonacci test, as you'll see I've re-updated it to that, also featuring the new native clock function! (Not really new to Lox but... new in this version of the project, up to this point.)
 
 Speaking of that recursive fibonacci test, the times I got were far more drastic for than that of the author, likely due to different hardware. For me, jlox took roughly 104 seconds to complete 40 cycles. clox++ completed the same exact script in about 12 seconds (rounding up, it was actually about 11.6)! That's a 12x boost in speed for such recursion! Keep in mind though, the more you add, it will still get EXPONENTIALLY slower. I found that the threshold began around 37 when it started slowing down by about 1.7x each time.
 
@@ -113,3 +114,14 @@ Speaking of that recursive fibonacci test, the times I got were far more drastic
 Closures have now been implemented. I added a few test programs to test out the functionality. In order, the results of each should be 'Outer', 'Outer', and 'Updated'.
 
 This is the final point in the book before the addition of the Garbage Collector. The language up to this point is still pretty open in terms of memory allocation and deallocation. Not everything is handled completely. That will change with the next update.
+
+## 0.9.0
+You might ask, "Gee, that's a big version jump considering there is no new files or anything." What about new features? Not really much, necessarily. At least not available to the end user. The reason for such a big jump in version is because this point marks the addition of the Garbage Collector. That is a huge step for clox, as now even the seemingly limited memory for creating programs has now been effectively increased ad infinitum. Further debug output has been implemented for checking in on what the GC is actually doing. This includes a "DEBUG_STRESS_GC" directive that will cause the GC to run constantly. That exists mainly to help with debugging the GC itself. When it runs constantly before and after each instruction, it is almost certain to either mark something incorrectly or to free an object that it isn't supposed to. This will point out any flaws in the language implementation that prevent the GC from accessing and managing certain chunks of memory.
+
+One thing that is of interesting note is the fact that the GC stress tester doesn't seem to slow things down much, at least not on simple programs. Even the recursive fibonacci function stress test doesn't skip a beat as a result of constant collection.
+
+The reason that is of note is due to the GC implementation. It is a Mark-Sweep style GC, and fully pauses on the users program whenever the GC itself runs. Reasonable defaults have been set for handling the throughput of the program and latency generated by the GC, which is why it still manages such speed.
+
+Keep in mind, however, that I have not -- by this point -- done extensive testing on it with much more complicated programs. I plan on waiting until the end of the book (just before optimizations but after the addition of classes and methods) to do such hardcore stress testing.
+
+I will also note now that I plan on adding at least some, though likely the majority of the extra features I would like in the language BEFORE the 'Optimization' chapter.

@@ -16,15 +16,26 @@ typedef struct {
 } CallFrame;
 
 typedef struct {
+    // Call Frames
     CallFrame frames[FRAMES_MAX];
     int frameCount;
 
+    // VM stack
     Value stack[STACK_MAX];
     Value *stackTop;
     Table globals;
     Table strings;
     ObjUpvalue *openUpvalues;
+
+    // Manage GC timing
+    size_t bytesAllocated;
+    size_t nextGC;
     Obj *objects;
+
+    // GC Markers
+    int grayCount;
+    int grayCapacity;
+    Obj **grayStack;
 } VM;
 
 typedef enum {

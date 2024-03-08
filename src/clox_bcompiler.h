@@ -63,5 +63,6 @@ typedef struct Compiler {
 } Compiler;
 
 ObjFunction *bCompile(const char *source);
+void markbCompilerRoots();
 
 #endif // CLOX_BCOMPILER_H

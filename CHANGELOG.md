@@ -19,6 +19,7 @@ Each section is denoted by the version number it corresponds to. Below is a tabl
 - [0.8.0](#0.8.0) | Implemented closures for functions
 - [0.9.0](#0.9.0) | Implemented the Garbage Collector
 - [0.9.25](#0.9.25) | Implemented the base for classes and instances of classes
+- [0.9.75](#0.9.75) | Classes and methods fully implemented, minus inheritance.
 
 ## 0.1.0
 #### New Files
@@ -132,3 +133,13 @@ I will also note now that I plan on adding at least some, though likely the majo
 Classes and instances of classes are now implemented as of this version. You can now define very simple classes (sort of loose C struct-like objects at the moment). When you create an instance, you can define fields for it through dot notation. Up to this point, this is the only way to implement fields on classes as initializers have not been implemented yet (those will come with the implementation of methods).
 
 A new simple test case (classes.lox) has been added to showcase how it works at this point in the implementation.
+
+## 0.9.75
+
+Classes and methods (including the constructor/initializer method) have been fully implemented with the exception of inheritance. '0.10.0' will mark that addition. Outside of inheritance and built in support for abstract classes/methods, you essentially have a large extent of OOP available to you. I plan on personally implementing structs as a separate construct later on, but for now, classes can essentially act as structs, or as a traditional class with methods called on them. I may or may not make an attempt to implement abstract objects.
+
+Fields can even be initialized with functions or classes (e.g. ```self.name = name();```). That is taken full advantage of with the new test case added for testing classes: 'listmap.lox'. As the name suggests, it implements a simple form of Lists and Maps (regular, not hash).
+
+The test was yoinked from [loxlox](#https://github.com/benhoyt/loxlox) which is a self-hosted implementation of Lox done by user 'benhoyt' on github. He had to implement those himself for Lox since they are not implemented in the language directly, and they're a great example of how to take advantage of the lox language as a whole, really. It of course makes use of classes, as well as initializing fields with functions/classes, and even nests a function inside of a method. And, since it is a test case, the classes (well, just the list one for now), are actually instantiated and invoked at the end to test their functionality so you get a basic taste of how it works.
+
+One final note: Not only due to the base language used to implement this (C instead of Java), but due to a small optimization, invoking methods are significantly faster than jlox.

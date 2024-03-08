@@ -20,8 +20,8 @@ typedef enum {
     PREC_EQUALITY,      // == !=
     PREC_COMPARISON,    // < > <= >=
     PREC_TERM,          // + -
-    PREC_FACTOR,        // * /
-    PREC_UNARY,         // ! -
+    PREC_FACTOR,        // * / % **
+    PREC_UNARY,         // ! - ++ --
     PREC_CALL,          // . ()
     PREC_PRIMARY
 } Precedence;
@@ -48,6 +48,8 @@ typedef struct {
 
 typedef enum {
     TYPE_FUNCTION,
+    TYPE_INITIALIZER,
+    TYPE_METHOD,
     TYPE_SCRIPT,
 } FunctionType;
 
@@ -61,6 +63,10 @@ typedef struct Compiler {
     Upvalue upvalues[UINT8_COUNT];
     int scopeDepth;
 } Compiler;
+
+typedef struct ClassCompiler {
+    struct classCompiler *enclosing;
+} ClassCompiler;
 
 ObjFunction *bCompile(const char *source);
 void markbCompilerRoots();

@@ -6,6 +6,8 @@ You will have the option of using the dynamically-typed version of Lax (clox ext
 
 For now, you're stuck with my implementation of clox with some extra features added (also 'this' keyword was changed to 'self' cause reasons).
 
+#### NOTE: I plan on trying to implement it so that both 'self' and 'this' will work exactly the same, in order to keep compatibility with the original for clox. Lax will ultimately go its own way and will not be compatible with clox programs by the time I have finished implementing it to the same point as clox.
+
 ## Table of Contents
 
 - [CHANGELOG](#changelog)

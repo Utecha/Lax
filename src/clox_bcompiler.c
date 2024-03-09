@@ -393,6 +393,8 @@ static void binary(bool canAssign)
         case TOKEN_MINUS:   emitByte(OP_SUBTRACT); break;
         case TOKEN_STAR:    emitByte(OP_MULTIPLY); break;
         case TOKEN_SLASH:   emitByte(OP_DIVIDE); break;
+        case TOKEN_MODULO:  emitByte(OP_MODULO); break;
+        case TOKEN_POWER:   emitByte(OP_POWER); break;
         default:            return; // Unreachable
     }
 }
@@ -410,6 +412,14 @@ static void dot(bool canAssign)
 
     if (canAssign && match(TOKEN_EQ)) {
         expression();
+        emitBytes(OP_SET_PROPERTY, name);
+    } else if (canAssign && match(TOKEN_INCREMENT)) {
+        emitBytes(OP_GET_PROPERTY_NOPOP, name);
+        emitByte(OP_INCREMENT);
+        emitBytes(OP_SET_PROPERTY, name);
+    } else if (canAssign && match(TOKEN_DECREMENT)) {
+        emitBytes(OP_GET_PROPERTY_NOPOP, name);
+        emitByte(OP_DECREMENT);
         emitBytes(OP_SET_PROPERTY, name);
     } else if (match(TOKEN_LPAREN)) {
         uint8_t argCount = argumentList();
@@ -478,6 +488,14 @@ static void namedVariable(Token name, bool canAssign)
     if (canAssign && match(TOKEN_EQ)) {
         expression();
         emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_INCREMENT)) {
+        namedVariable(name, false);
+        emitByte(OP_INCREMENT);
+        emitBytes(setOp, (uint8_t)arg);
+    } else if (canAssign && match(TOKEN_DECREMENT)) {
+        namedVariable(name, false);
+        emitByte(OP_DECREMENT);
+        emitBytes(setOp, (uint8_t)arg);
     } else {
         emitBytes(getOp, (uint8_t)arg);
     }
@@ -533,59 +551,110 @@ static void self(bool canAssign)
 static void unary(bool canAssign)
 {
     TokenType opType = parser.previous.type;
+    Token name = parser.current;
 
     // Compile the operand
     parsePrecedence(PREC_UNARY);
 
     // Emit the operator instruction.
     switch (opType) {
-        case TOKEN_MINUS:   emitByte(OP_NEGATE); break;
-        case TOKEN_NOT:     emitByte(OP_NOT); break;
-        default:            return; // Unreachable
+        case TOKEN_MINUS:       emitByte(OP_NEGATE); break;
+        case TOKEN_NOT:         emitByte(OP_NOT); break;
+        case TOKEN_INCREMENT: {
+            uint8_t setOp;
+            int arg = resolveLocal(current, &name);
+            if (arg != -1) {
+                setOp = OP_SET_LOCAL;
+            } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+                setOp = OP_SET_UPVALUE;
+            } else {
+                arg = identifierConstant(&name);
+                setOp = OP_SET_GLOBAL;
+            }
+
+            if (canAssign) {
+                namedVariable(name, false);
+                emitByte(OP_INCREMENT);
+                emitBytes(setOp, (uint8_t)arg);
+            }
+        } break;
+        case TOKEN_DECREMENT: {
+            uint8_t setOp;
+            int arg = resolveLocal(current, &name);
+            if (arg != -1) {
+                setOp = OP_SET_LOCAL;
+            } else if ((arg = resolveUpvalue(current, &name)) != -1) {
+                setOp = OP_SET_UPVALUE;
+            } else {
+                arg = identifierConstant(&name);
+                setOp = OP_SET_GLOBAL;
+            }
+
+            if (canAssign) {
+                namedVariable(name, false);
+                emitByte(OP_DECREMENT);
+                emitBytes(setOp, (uint8_t)arg);
+            }
+        } break;
+        default:                return; // Unreachable
     }
 }
 
+static void increment(bool canAssign)
+{
+    emitByte(OP_INCREMENT);
+}
+
+static void decrement(bool canAssign)
+{
+    emitByte(OP_DECREMENT);
+}
+
 ParseRule rules[] = {
-    [TOKEN_LPAREN]     = { grouping,   call,    PREC_CALL },
-    [TOKEN_RPAREN]     = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_LBRACE]     = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_RBRACE]     = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_COMMA]      = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_DOT]        = { NULL,       dot,     PREC_CALL },
-    [TOKEN_MINUS]      = { unary,      binary,  PREC_TERM },
-    [TOKEN_PLUS]       = { NULL,       binary,  PREC_TERM },
-    [TOKEN_SEMICOLON]  = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_SLASH]      = { NULL,       binary,  PREC_FACTOR },
-    [TOKEN_STAR]       = { NULL,       binary,  PREC_FACTOR },
-    [TOKEN_NOT]        = { unary,      NULL,    PREC_NONE },
-    [TOKEN_NOTEQ]      = { NULL,       binary,  PREC_EQUALITY },
-    [TOKEN_EQ]         = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_EQEQ]       = { NULL,       binary,  PREC_EQUALITY },
-    [TOKEN_GT]         = { NULL,       binary,  PREC_COMPARISON },
-    [TOKEN_GTEQ]       = { NULL,       binary,  PREC_COMPARISON },
-    [TOKEN_LT]         = { NULL,       binary,  PREC_COMPARISON },
-    [TOKEN_LTEQ]       = { NULL,       binary,  PREC_COMPARISON },
-    [TOKEN_IDENTIFIER] = { variable,   NULL,    PREC_NONE },
-    [TOKEN_STRING]     = { string,     NULL,    PREC_NONE },
-    [TOKEN_NUMBER]     = { number,     NULL,    PREC_NONE },
-    [TOKEN_AND]        = { NULL,       and_,    PREC_AND },
-    [TOKEN_CLASS]      = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_ELSE]       = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_FALSE]      = { literal,    NULL,    PREC_NONE },
-    [TOKEN_FOR]        = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_FUN]        = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_IF]         = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_NIL]        = { literal,    NULL,    PREC_NONE },
-    [TOKEN_OR]         = { NULL,       or_,     PREC_OR },
-    [TOKEN_PRINT]      = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_RETURN]     = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_SELF]       = { self,       NULL,    PREC_NONE },
-    [TOKEN_SUPER]      = { super,      NULL,    PREC_NONE },
-    [TOKEN_TRUE]       = { literal,    NULL,    PREC_NONE },
-    [TOKEN_VAR]        = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_WHILE]      = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_ERROR]      = { NULL,       NULL,    PREC_NONE },
-    [TOKEN_EOF]        = { NULL,       NULL,    PREC_NONE },
+    [TOKEN_LPAREN]     = { grouping,   call,        PREC_CALL },
+    [TOKEN_RPAREN]     = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_LBRACE]     = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_RBRACE]     = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_COMMA]      = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_DOT]        = { NULL,       dot,         PREC_CALL },
+    [TOKEN_MINUS]      = { unary,      binary,      PREC_TERM },
+    [TOKEN_PLUS]       = { NULL,       binary,      PREC_TERM },
+    [TOKEN_SEMICOLON]  = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_SLASH]      = { NULL,       binary,      PREC_FACTOR },
+    [TOKEN_STAR]       = { NULL,       binary,      PREC_FACTOR },
+    [TOKEN_MODULO]     = { NULL,       binary,      PREC_FACTOR },
+    [TOKEN_POWER]      = { NULL,       binary,      PREC_FACTOR },
+    [TOKEN_NOT]        = { unary,      NULL,        PREC_NONE },
+    [TOKEN_NOTEQ]      = { NULL,       binary,      PREC_EQUALITY },
+    [TOKEN_EQ]         = { NULL,       NULL,        PREC_ASSIGNMENT },
+    [TOKEN_EQEQ]       = { NULL,       binary,      PREC_EQUALITY },
+    [TOKEN_GT]         = { NULL,       binary,      PREC_COMPARISON },
+    [TOKEN_GTEQ]       = { NULL,       binary,      PREC_COMPARISON },
+    [TOKEN_LT]         = { NULL,       binary,      PREC_COMPARISON },
+    [TOKEN_LTEQ]       = { NULL,       binary,      PREC_COMPARISON },
+    [TOKEN_INCREMENT]  = { unary,      increment,   PREC_NONE },
+    [TOKEN_DECREMENT]  = { unary,      decrement,   PREC_NONE },
+    [TOKEN_IDENTIFIER] = { variable,   NULL,        PREC_NONE },
+    [TOKEN_STRING]     = { string,     NULL,        PREC_NONE },
+    [TOKEN_NUMBER]     = { number,     NULL,        PREC_NONE },
+    [TOKEN_AND]        = { NULL,       and_,        PREC_AND },
+    [TOKEN_CLASS]      = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_ELSE]       = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_FALSE]      = { literal,    NULL,        PREC_NONE },
+    [TOKEN_FOR]        = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_FUN]        = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_IF]         = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_NIL]        = { literal,    NULL,        PREC_NONE },
+    [TOKEN_OR]         = { NULL,       or_,         PREC_OR },
+    [TOKEN_PRINT]      = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_RETURN]     = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_SELF]       = { self,       NULL,        PREC_NONE },
+    [TOKEN_SUPER]      = { super,      NULL,        PREC_NONE },
+    [TOKEN_TRUE]       = { literal,    NULL,        PREC_NONE },
+    [TOKEN_VAR]        = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_WHILE]      = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_ERROR]      = { NULL,       NULL,        PREC_NONE },
+    [TOKEN_EOF]        = { NULL,       NULL,        PREC_NONE },
 };
 
 static void parsePrecedence(Precedence precedence)

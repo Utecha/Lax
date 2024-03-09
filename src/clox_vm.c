@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
@@ -366,7 +367,7 @@ static InterpretResult run()
             } break;
             case OP_GET_PROPERTY: {
                 if (!IS_INSTANCE(peek(0))) {
-                    runtimeError("Properties can only be defined or accessed on instances of a class.");
+                    runtimeError("Properties can only be accessed from instances of a class.");
                     return INTERPRET_RUNTIME_ERROR;
                 }
 
@@ -382,6 +383,25 @@ static InterpretResult run()
 
                 if (!bindMethod(instance->class, name)) {
                     return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
+            case OP_GET_PROPERTY_NOPOP: {
+                if (!IS_INSTANCE(peek(0))) {
+                    runtimeError("Properties can only be accessed from instances of a class.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                ObjInstance *instance = AS_INSTANCE(peek(0));
+                ObjString *name = READ_STRING();
+
+                Value value;
+                if (tableGet(&instance->fields, name, &value)) {
+                    push(value);
+                    break;
+                }
+
+                if (bindMethod(instance->class, name)) {
+                    break;
                 }
             } break;
             case OP_SET_PROPERTY: {
@@ -426,6 +446,34 @@ static InterpretResult run()
             case OP_SUBTRACT:       BINARY_OP(NUMBER_VAL, -); break;
             case OP_MULTIPLY:       BINARY_OP(NUMBER_VAL, *); break;
             case OP_DIVIDE:         BINARY_OP(NUMBER_VAL, /); break;
+            case OP_MODULO: {
+                if ((IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) &&
+                    (AS_NUMBER(peek(0)) == (int)AS_NUMBER(peek(0))) &&
+                    (AS_NUMBER(peek(1)) == (int)AS_NUMBER(peek(1)))
+                    ) {
+
+                    int b = (int)AS_NUMBER(pop());
+                    int a = (int)AS_NUMBER(pop());
+                    push(NUMBER_VAL(a % b));
+                } else {
+                    runtimeError("Operands must be integers.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
+            case OP_POWER: {
+                if ((IS_NUMBER(peek(0)) && IS_NUMBER(peek(1))) &&
+                    (AS_NUMBER(peek(0)) == (int)AS_NUMBER(peek(0))) &&
+                    (AS_NUMBER(peek(1)) == (int)AS_NUMBER(peek(1)))
+                    ) {
+
+                    int b = (int)AS_NUMBER(pop());
+                    int a = (int)AS_NUMBER(pop());
+                    push(NUMBER_VAL(pow(a, b)));
+                } else {
+                    runtimeError("Operands must be integers.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
             case OP_NOT:            push(BOOL_VAL(isFalsey(pop()))); break;
             case OP_NEGATE: {
                 if (!IS_NUMBER(peek(0))) {
@@ -434,6 +482,20 @@ static InterpretResult run()
                 }
 
                 push(NUMBER_VAL(-AS_NUMBER(pop())));
+            } break;
+            case OP_INCREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(NUMBER_VAL(AS_NUMBER(pop()) + 1));
+            } break;
+            case OP_DECREMENT: {
+                if (!IS_NUMBER(peek(0))) {
+                    runtimeError("Operand must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(NUMBER_VAL(AS_NUMBER(pop()) - 1));
             } break;
             case OP_PRINT: {
                 printValue(pop());

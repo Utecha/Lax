@@ -1,0 +1,22 @@
+// Modulo
+print 5 % 2; // Expect '1'
+
+// Power
+print 5 ** 4; // Expect '625'
+
+// Pre-decrement
+for (var i = 10; i >= 0; i = i--) {
+    print i;
+}
+print "Lift-Off!"; // Expect countdown from 10 to 0 + "Lift-Off!"
+
+// Pre-increment
+for (var i = 0; i <= 10; ++i) {
+    print i;
+}
+print "Lift-Off!"; // Expect countup from 0 to 10 + "Lift-Off!"
+
+// Now, I'm not exactly sure how C handles pre/post-crementation.
+// Technically, both are supported. However, when used in a for loop, the way
+// that post-decrementation/incrementation is handled means that you will end up
+// in an infinite loop, as the iterator variable will not actually increase/decrease.

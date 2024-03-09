@@ -1,0 +1,25 @@
+class Enum {
+    init() {
+        self._iota = 0;
+    }
+
+    iota() {
+        var result = self._iota;
+        self._iota++;
+        return result;
+    }
+}
+
+var enum = Enum();
+
+var a = enum.iota();
+var b = enum.iota();
+var c = enum.iota();
+var d = enum.iota();
+var e = enum.iota();
+
+print a;
+print b;
+print c;
+print d;
+print e;

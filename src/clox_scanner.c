@@ -202,10 +202,11 @@ Token scanToken()
         case ';':   return makeToken(TOKEN_SEMICOLON);
         case ',':   return makeToken(TOKEN_COMMA);
         case '.':   return makeToken(TOKEN_DOT);
-        case '-':   return makeToken(TOKEN_MINUS);
-        case '+':   return makeToken(TOKEN_PLUS);
+        case '-':   return makeToken(match('-') ? TOKEN_DECREMENT : TOKEN_MINUS);
+        case '+':   return makeToken(match('+') ? TOKEN_INCREMENT : TOKEN_PLUS);
         case '/':   return makeToken(TOKEN_SLASH);
-        case '*':   return makeToken(TOKEN_STAR);
+        case '%':   return makeToken(TOKEN_MODULO);
+        case '*':   return makeToken(match('*') ? TOKEN_POWER : TOKEN_STAR);
         case '!':   return makeToken(match('=') ? TOKEN_NOTEQ : TOKEN_NOT);
         case '=':   return makeToken(match('=') ? TOKEN_EQEQ : TOKEN_EQ);
         case '>':   return makeToken(match('=') ? TOKEN_GTEQ : TOKEN_GT);

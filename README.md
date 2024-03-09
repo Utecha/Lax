@@ -1,18 +1,84 @@
-# clox++
-clox++ is an extended implementation of the Lox language made by Robert Nystrom, following the book [Crafting Interpreters](#https://craftinginterpreters.com/).
+# Lax
 
-This is not my original edition, though I may include a link to that as well if you want to see the differences. I'm still relatively new and uncomfortable at this point with working on such a project but I made it through the Java part fine despite not knowing any Java (I basically learned it a decent bit from the book). That being said, that implementation did have support for all bitwise operators (&, |, ^, <<, >>) as well as modulo (%) and power (**). In my process of learning in this section, I managed to sort of figure out a way to incorporate escape characters, but the only ones I really cared that much to add (considering it took me forever to figure out) were newlines and tabs. I also added the C-style increment and decrement operators (++, --) but my implementation was a little buggy to say the least. For both of those, I've learned better ways of implementing them.
+Lax is (currently) a dynamically-typed language based on Lox (the clox bytecode interpreted edition). Later, when I have finished implementing Lax, it will be its own separate language based on clox, with the several additions including a native compiler. The reason I said 'currently' earlier is for that reason: when I implement the native compiler, I plan on implementing static typing for that compilation mode.
 
-That brings me to clox++. This edition is going to have a handful of extra features not included with the original language:
+You will have the option of using the dynamically-typed version of Lax (clox extended), or you can use a superset (true Lax) that is statically-typed and compiles to native assembly instructions. I'm more than likely going to be using the [qbe](#https://c9x.me/compile/) backend so it should be pretty well cross-platform.
 
-- Bitwise Operators
-- Modulo & Power
-- C-style increment/decrement (pre and post)
-- More built-in functions (printf being highest priority);
-- Support for variadic arguments
-- Support for multiple files featuring an 'include' keyword
-- Structs - I'm debating on this one since at the end of the day, you can just define a class fields and no methods and you basically have a struct. In C++, you can quite literally use the 2 keywords interchangeably, though if I'm not mistaken, you can actually define methods on your 'struct' (class).
-- Built-in array support. Thanks to a fellow learner who implemented Lox in itself, I learned a good bit about how they work because he quite literally implemented them in Lox, err.. in Lox. When I say them, I mean lists (basic arrays) and maps (dictionaries for you Python people). Ideally though, I would like to leverage C to add proper arrays, in the same sense as C or basically any other language. Rather than creating a list by instantiating a list class (as in the loxlox implementation), it will be built-in from the C bytecode compiler and work the same way as any other language -- access the index of the item using '[]'.
-- Some degree of a standard library. I'd like to add some more basic but very necessary things like file i/o, some ways to print to stdout/stderr. More general interfacing with the OS (Linux only for now).
-- Interoperability with C. Much like Lua and many other languages, I'd like to bridge the gap and make it possible to call C functions through Lox. Which brings me to one of my final goals..
-- Native compilation. Just to x86_64, however compilation to native Assembly is likely the easiest way to add the previous goal in - C Interoperability. You can call C functions directly from Assembly and of course have full access to the OS and to syscalls. I have not decided whether I'm just going to write my own simple back-end compiler or if I'm going to use something like qbe. llvm is off the table because it's far too bloated for the extent I plan to go with all of this.
+## Table of Contents
+
+- [Features to Come](#features_to_come)
+- [Features](#features)
+- [Usage](#usage)
+- [MANUAL](#manual)
+- [LICENSE](#license)
+
+## Features to Come
+
+- Dynamic Arrays
+- Maps
+- More built-in functions such as: printf, system, exit
+- Bitwise operators
+- Ternary operators
+- String interpolation
+- Support for escape sequences in strings
+- Native compilation
+- Static typing for the native compiler
+- Structs as a separate object -- Will ultimately be functionally the same as C++
+- Built-in support for enums. Likely C/C++ style enums.
+- Module support (currently Lax/clox programs only support a single source file)
+- Macros
+- Properly implemented pre and post increment/decrement operators (current implementation mostly works but is a bit buggy)
+- Built-in support for variadic arguments to functions/methods
+
+## Features
+
+- Arithmetic Operators ( + || - || * || / || % (Remainder) || ** (Power))
+- Comparison Operators ( > || >= || < || <= )
+- Equality Operators ( == || != )
+- Unary Operators ( ! || - || ++ || -- ) **see next**
+- Increment Operators
+    - ( ++ || -- )
+    - Usable in both pre and post contexts. Weird bugs currently, see [MANUAL](#manual) for more info on their usage.
+- Variables Declaration & Definition (like C -- Declared variables left undefined are initialized to 'nil');
+- 'nil', 'true', and 'false' as functional keywords. Nil is a rough equivalent to NULL from C and other languages.
+- Functions
+- Classes, Methods, and Inheritance
+- Very fast -- Bytecode compiled with a VM to interpret, and a built in garbage collector.
+
+## Usage
+
+To install, first clone the repo:
+
+```console
+git clone https://github.com/Utecha/lax.git
+cd lax
+```
+
+Then, run ```make``` to build and generate the executables.
+
+For now, only clox is usable, so to run it, enter:
+
+```console
+./clox
+```
+
+Running it without any arguments puts you into the REPL, much like you would with Python (though this REPL is not quite as good, admittedly).
+
+You can also give it some arguments, such as a file:
+
+```console
+./clox source_file.lox
+```
+
+That runs code from an entire file (as you'd expect), which is much nicer than working 1 line at a time! (Especially if you're trying to squeeze something like a class on 1 line!)
+
+When a usable version of Lax releases, I will be implementing support for multiple files.
+
+Later on, there will also be usable commands to go along with it, though that likely won't be a reality until I have begun work on the native compiler.
+
+## MANUAL
+
+The manual is surprisingly extensive for such as language, so you can find that [here]().
+
+## LICENSE
+Lax is governed under the same license as namesake Lox, the [MIT License](#https://github.com/Utecha/lax/LICENSE).

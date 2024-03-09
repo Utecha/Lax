@@ -10,15 +10,12 @@ For now, you're stuck with my implementation of clox with some extra features ad
 
 ## Table of Contents
 
-- [CHANGELOG](#changelog)
 - [Upcoming](#upcoming)
 - [Features](#features)
 - [Usage](#usage)
 - [MANUAL](#manual)
-- [LICENSE](#license)
-
-## CHANGELOG
-You can view the changelog [here](#https://github.com/Utecha/Lax/blob/main/CHANGELOG.md).
+- [CHANGELOG](https://github.com/Utecha/Lax/blob/main/CHANGELOG.md)
+- [LICENSE](https://github.com/Utecha/Lax/blob/main/LICENSE)
 
 ## Upcoming
 
@@ -89,6 +86,3 @@ Later on, there will also be usable commands to go along with it, though that li
 The manual is surprisingly extensive for such as language. This will be implemented soon!
 
 If you have experience with C, Python, or JavaScript (especially that last one), it's similar to those, but way less (or more, in certain ways) featureful lol.
-
-## LICENSE
-Lax is governed under the same license as namesake Lox, the [MIT License](#https://github.com/Utecha/Lax/blob/main/LICENSE)

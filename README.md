@@ -4,15 +4,17 @@ Lax is (currently) a dynamically-typed language based on Lox (the clox bytecode 
 
 You will have the option of using the dynamically-typed version of Lax (clox extended), or you can use a superset (true Lax) that is statically-typed and compiles to native assembly instructions. I'm more than likely going to be using the [qbe](#https://c9x.me/compile/) backend so it should be pretty well cross-platform.
 
+For now, you're stuck with my implementation of clox with some extra features added (also 'this' keyword was changed to 'self' cause reasons).
+
 ## Table of Contents
 
-- [Features to Come](#features_to_come)
+- [Upcoming](#upcoming)
 - [Features](#features)
 - [Usage](#usage)
 - [MANUAL](#manual)
 - [LICENSE](#license)
 
-## Features to Come
+## Upcoming
 
 - Dynamic Arrays
 - Maps
@@ -78,7 +80,9 @@ Later on, there will also be usable commands to go along with it, though that li
 
 ## MANUAL
 
-The manual is surprisingly extensive for such as language, so you can find that [here]().
+The manual is surprisingly extensive for such as language. This will be implemented soon!
+
+If you have experience with C, Python, or JavaScript (especially that last one), it's similar to those, but way less (or more, in certain ways) featureful lol.
 
 ## LICENSE
-Lax is governed under the same license as namesake Lox, the [MIT License](#https://github.com/Utecha/lax/LICENSE).
+Lax is governed under the same license as namesake Lox, the [MIT License](#https://github.com/Utecha/Lax/blob/main/LICENSE)

@@ -1,6 +1,6 @@
 CFLAGS := -Wall -Wextra -Wno-unused-parameter
 
-OG_SOURCE_DIR := clox
+OG_SOURCE_DIR := lox
 SOURCE_DIR := src
 OG_HEADERS := $(wildcard $(OG_SOURCE_DIR)/*.h)
 OG_SOURCES := $(wildcard $(OG_SOURCE_DIR)/*.c)
@@ -11,8 +11,9 @@ OBJECTS := $(notdir $(SOURCES:.c=.o))
 
 all: lax clox
 dump: lax_dump clox_dump
+dbg: lax_dbg clox_dbg
 
-lax: lax_dbg
+lax:
 	@ mkdir -p build/release
 	gcc $(CFLAGS) -O3 -o build/release/lax $(SOURCES)
 	@ cp build/release/lax .
@@ -27,7 +28,7 @@ lax_dump:
 
 og: clox clox_dump
 
-clox: clox_dbg
+clox:
 	@ mkdir -p build/release
 	gcc $(CFLAGS) -O3 -o build/release/clox $(OG_SOURCES) -lm
 	@ cp build/release/clox .

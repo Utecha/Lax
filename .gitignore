@@ -1,8 +1,7 @@
 build/debug/*
 build/objdump/*
 build/release/*
-srcBackup/
 clox
 cloxdb
-cloxbak
-cloxdbbak
+lax
+laxdb

@@ -8,11 +8,15 @@ For now, you're stuck with my implementation of clox with some extra features ad
 
 ## Table of Contents
 
+- [CHANGELOG](#changelog)
 - [Upcoming](#upcoming)
 - [Features](#features)
 - [Usage](#usage)
 - [MANUAL](#manual)
 - [LICENSE](#license)
+
+## CHANGELOG
+You can view the changelog [here](#https://github.com/Utecha/Lax/blob/main/CHANGELOG.md).
 
 ## Upcoming
 

@@ -3,30 +3,30 @@
 Each section is denoted by the version number it corresponds to. Below is a table of contents for quickly jumping between sections:
 
 - [CLOX](#clox)
-- [LAX](#LAX)
+- [LAX](#lax)
 
 ## CLOX
 
-- [clox 0.1.0](#clox_0.1.0) | The Beginning
-- [clox 0.2.0](#clox_0.2.0) | Introducing the VM and basic instructions
-- [clox 0.3.0](#clox_0.3.0) | Lexer (Scanner) and Bytecode Compiler added
-- [clox 0.3.5](#clox_0.3.5) | bCompiler && VM hooked up and interpreting simple expressions
-- [clox 0.4.0](#clox_0.4.0) | Initial introduction of dynamic typing
-- [clox 0.4.5](#clox_0.4.5) | Introduced new generic "Obj" type for heap-allocated code
-- [clox 0.5.0](#clox_0.5.0) | Implemented Hash Table for better managing values such as strings
-- [clox 0.5.5](#clox_0.5.5) | Implemented global variables and the essence of global scoping
-- [clox 0.5.9](#clox_0.5.9) | Nearly finished implementing local scopes (read the section)
-- [clox 0.6.0](#clox_0.6.0) | Finished implementing local scopes (read the section)
-- [clox 0.6.5](#clox_0.6.5) | Added the control-flow constructs: if-else statements, while, and for loops
-- [clox 0.7.0](#clox_0.7.0) | Begin function implementation. File is itself now an implicit 'main' function.
-- [clox 0.7.4](#clox_0.7.4) | Functions fully implemented (this version exists because I thought they were broken, see 0.7.5)
-- [clox 0.7.5](#clox_0.7.5) | Confirmed functions are implemented properly
-- [clox 0.8.0](#clox_0.8.0) | Implemented closures for functions
-- [clox 0.9.0](#clox_0.9.0) | Implemented the Garbage Collector
-- [clox 0.9.25](#clox_0.9.25) | Implemented the base for classes and instances of classes
-- [clox 0.9.75](#clox_0.9.75) | Classes and methods fully implemented, minus inheritance.
-- [clox 0.10.0](#clox_0.10.0) | Inheritance added. Language is now complete (up to the original Lox spec)
-- [clox 0.10.1](#clox_0.10.1) | Added Modulo, Power, Increment/Decrement operators. Begin split into Lax.
+- [clox 0.1.0](#clox-010) | The Beginning
+- [clox 0.2.0](#clox-020) | Introducing the VM and basic instructions
+- [clox 0.3.0](#clox-030) | Lexer (Scanner) and Bytecode Compiler added
+- [clox 0.3.5](#clox-035) | bCompiler && VM hooked up and interpreting simple expressions
+- [clox 0.4.0](#clox-040) | Initial introduction of dynamic typing
+- [clox 0.4.5](#clox-045) | Introduced new generic "Obj" type for heap-allocated code
+- [clox 0.5.0](#clox-050) | Implemented Hash Table for better managing values such as strings
+- [clox 0.5.5](#clox-055) | Implemented global variables and the essence of global scoping
+- [clox 0.5.9](#clox-059) | Nearly finished implementing local scopes (read the section)
+- [clox 0.6.0](#clox-060) | Finished implementing local scopes (read the section)
+- [clox 0.6.5](#clox-065) | Added the control-flow constructs: if-else statements, while, and for loops
+- [clox 0.7.0](#clox-070) | Begin function implementation. File is itself now an implicit 'main' function.
+- [clox 0.7.4](#clox-074) | Functions fully implemented (this version exists because I thought they were broken, see 0.7.5)
+- [clox 0.7.5](#clox-075) | Confirmed functions are implemented properly
+- [clox 0.8.0](#clox-080) | Implemented closures for functions
+- [clox 0.9.0](#clox-090) | Implemented the Garbage Collector
+- [clox 0.9.25](#clox-0925) | Implemented the base for classes and instances of classes
+- [clox 0.9.75](#clox-0975) | Classes and methods fully implemented, minus inheritance.
+- [clox 0.10.0](#clox-0100) | Inheritance added. Language is now complete (up to the original Lox spec)
+- [clox 0.10.1](#clox-0101) | Added Modulo, Power, Increment/Decrement operators. Begin split into Lax.
 
 ### clox 0.1.0
 #### New Files
@@ -235,5 +235,4 @@ I also have now moved the entire 'src' directories contents into 'clox'.
 
 For now, I will slowly be updating this version bit by bit with small new features as I rewrite and refactor. That way, there is something that is still up to date and working.
 
-## LOX
-
+## LAX

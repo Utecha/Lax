@@ -1,52 +1,78 @@
 CFLAGS := -Wall -Wextra -Wno-unused-parameter
+DBGFLAGS := -DDEBUG -ggdb
 
-OG_SOURCE_DIR := lox
-SOURCE_DIR := src
-OG_HEADERS := $(wildcard $(OG_SOURCE_DIR)/*.h)
-OG_SOURCES := $(wildcard $(OG_SOURCE_DIR)/*.c)
-HEADERS := $(wildcard $(SOURCE_DIR)/*.h)
-SOURCES := $(wildcard $(SOURCE_DIR)/*.c)
-SOURCESBAK := $(wildcard $(SOURCE_BAK_DIR)/*.c)
-OBJECTS := $(notdir $(SOURCES:.c=.o))
+CLOX_DIR := lox
+CLOX := clox
+CLOXDB := cloxdb
+LAX_DIR := src
+LAX := lax
+LAXDB := laxdb
+CLOX_HEADERS := $(wildcard $(CLOX_DIR)/*.h)
+CLOX_SOURCES := $(wildcard $(CLOX_DIR)/*.c)
+HEADERS := $(wildcard $(LAX_DIR)/*.h)
+SOURCES := $(wildcard $(LAX_DIR)/*.c)
+RELEASE := build/release
+DEBUG := build/debug
+CLOX_OBJDUMP := build/objdump/clox
+LAX_OBJDUMP := build/objdump/lax
 
-all: lax clox
-dump: lax_dump clox_dump
-dbg: lax_dbg clox_dbg
+lax: laxpch
+	@ mkdir -p $(RELEASE)
+	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(LAX) $(SOURCES)
+	@ cp $(RELEASE)/$(LAX) .
 
-lax:
-	@ mkdir -p build/release
-	gcc $(CFLAGS) -O3 -o build/release/lax $(SOURCES)
-	@ cp build/release/lax .
+laxdbg: laxpch
+	@ mkdir -p $(DEBUG)
+	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o $(DEBUG)/$(LAXDB) $(SOURCES)
 
-lax_dbg:
-	@ mkdir -p build/release
-	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o build/debug/laxdb $(SOURCES)
-	@ cp build/release/lax .
+laxdump:
+	@ mkdir -p $(LAX_OBJDUMP)
+	gcc -o $(LAX_OBJDUMP)/$(LAX).o -c $(LAX_DIR)/$(LAX).c
+	gcc -o $(LAX_OBJDUMP)/bcompiler.o -c $(LAX_DIR)/bcompiler.c
+	gcc -o $(LAX_OBJDUMP)/chunk.o -c $(LAX_DIR)/chunk.c
+	gcc -o $(LAX_OBJDUMP)/debug.o -c $(LAX_DIR)/debug.c
+	gcc -o $(LAX_OBJDUMP)/lexer.o -c $(LAX_DIR)/lexer.c
+	gcc -o $(LAX_OBJDUMP)/log.o -c $(LAX_DIR)/log.c
+	gcc -o $(LAX_OBJDUMP)/memory.o -c $(LAX_DIR)/memory.c
+	gcc -o $(LAX_OBJDUMP)/object.o -c $(LAX_DIR)/object.c
+	gcc -o $(LAX_OBJDUMP)/parser.o -c $(LAX_DIR)/parser.c
+	gcc -o $(LAX_OBJDUMP)/read.o -c $(LAX_DIR)/read.c
+	gcc -o $(LAX_OBJDUMP)/table.o -c $(LAX_DIR)/table.c
+	gcc -o $(LAX_OBJDUMP)/value.o -c $(LAX_DIR)/value.c
+	gcc -o $(LAX_OBJDUMP)/vm.o -c $(LAX_DIR)/vm.c
 
-lax_dump:
-	@ mkdir -b build/objdump/lax
+laxpch:
+	@ gcc $(SOURCES) $(HEADERS)
 
-og: clox clox_dump
+clox: cloxpch
+	@ mkdir -p $(RELEASE)
+	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(CLOX) $(CLOX_SOURCES) -lm
+	@ cp $(RELEASE)/$(CLOX) .
 
-clox:
-	@ mkdir -p build/release
-	gcc $(CFLAGS) -O3 -o build/release/clox $(OG_SOURCES) -lm
-	@ cp build/release/clox .
+cloxdbg: cloxpch
+	@ mkdir -p $(DEBUG)
+	gcc $(CFLAGS) $(DBGFLAGS) -O0 -o $(DEBUG)/$(CLOXDB) $(CLOX_SOURCES) -lm
 
-clox_dbg:
-	@ mkdir -p build/debug
-	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o build/debug/cloxdb $(OG_SOURCES) -lm
-	@ cp build/debug/cloxdb .
+cloxpch:
+	@ gcc $(CLOX_SOURCES) $(CLOX_HEADERS)
 
-clox_dump:
-	@ mkdir -p build/objdump/clox
-	gcc -o build/objdump/clox/clox.o -c src/clox.c
-	gcc -o build/objdump/clox/clox_bcompiler.o -c src/clox_bcompiler.c
-	gcc -o build/objdump/clox/clox_chunk.o -c src/clox_chunk.c
-	gcc -o build/objdump/clox/clox_debug.o -c src/clox_debug.c
-	gcc -o build/objdump/clox/clox_memory.o -c src/clox_memory.c
-	gcc -o build/objdump/clox/clox_object.o -c src/clox_object.c
-	gcc -o build/objdump/clox/clox_scanner.o -c src/clox_scanner.c
-	gcc -o build/objdump/clox/clox_table.o -c src/clox_table.c
-	gcc -o build/objdump/clox/clox_value.o -c src/clox_value.c
-	gcc -o build/objdump/clox/clox_vm.o -c src/clox_vm.c
+cloxdump:
+	@ mkdir -p $(CLOX_OBJDUMP)
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX).o -c $(CLOX_DIR)/$(CLOX).c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_bcompiler.o -c $(CLOX_DIR)/$(CLOX)_bcompiler.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_chunk.o -c $(CLOX_DIR)/$(CLOX)_chunk.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_debug.o -c $(CLOX_DIR)/$(CLOX)_debug.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_memory.o -c $(CLOX_DIR)/$(CLOX)_memory.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_object.o -c $(CLOX_DIR)/$(CLOX)_object.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_scanner.o -c $(CLOX_DIR)/$(CLOX)_scanner.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_table.o -c $(CLOX_DIR)/$(CLOX)_table.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_value.o -c $(CLOX_DIR)/$(CLOX)_value.c
+	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_vm.o -c $(CLOX_DIR)/$(CLOX)_vm.c
+
+clean:
+	@ rm -f $(RELEASE)/*
+	@ rm -f $(DEBUG)/*
+	@ rm -f $(CLOX_OBJDUMP)/*
+	@ rm -f $(LAX_OBJDUMP)/*
+	@ rm $(CLOX)
+	@ rm $(LAX)

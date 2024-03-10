@@ -16,6 +16,12 @@ DEBUG := build/debug
 CLOX_OBJDUMP := build/objdump/clox
 LAX_OBJDUMP := build/objdump/lax
 
+default: lax
+
+both: clox lax
+
+bothdbg: cloxdbg laxdbg
+
 lax: laxpch
 	@ mkdir -p $(RELEASE)
 	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(LAX) $(SOURCES)
@@ -43,6 +49,7 @@ laxdump:
 
 laxpch:
 	@ gcc $(SOURCES) $(HEADERS)
+	@ rm a.out
 
 clox: cloxpch
 	@ mkdir -p $(RELEASE)
@@ -54,7 +61,8 @@ cloxdbg: cloxpch
 	gcc $(CFLAGS) $(DBGFLAGS) -O0 -o $(DEBUG)/$(CLOXDB) $(CLOX_SOURCES) -lm
 
 cloxpch:
-	@ gcc $(CLOX_SOURCES) $(CLOX_HEADERS)
+	@ gcc $(CLOX_SOURCES) $(CLOX_HEADERS) -lm
+	@ rm a.out
 
 cloxdump:
 	@ mkdir -p $(CLOX_OBJDUMP)
@@ -73,6 +81,6 @@ clean:
 	@ rm -f $(RELEASE)/*
 	@ rm -f $(DEBUG)/*
 	@ rm -f $(CLOX_OBJDUMP)/*
-	@ rm -f $(LAX_OBJDUMP)/*
+	# @ rm -f $(LAX_OBJDUMP)/*
 	@ rm $(CLOX)
-	@ rm $(LAX)
+	# @ rm $(LAX)

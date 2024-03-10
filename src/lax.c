@@ -1,5 +1,12 @@
-#include "common.h"
+#include <stdlib.h>
+#include <string.h>
 
+#include "chunk.h"
+#include "common.h"
+#include "debug.h"
+
+// Very simple REPL for interpreting code.
+// Not super useful for testing functions or classes in its current state.
 static void
 repl()
 {
@@ -18,17 +25,22 @@ repl()
     }
 }
 
+/* Start her up! */
 int
 main(int argc, char **argv)
 {
-    if (argc == 1) {
-        repl();
-    } else if (argc == 2) {
-        // runFile(argv[1]);
-    } else {
-        laxlog(NONE, "Usage: lax <source>\n");
-        exit(64);
-    }
+    Chunk chunk;
+    initChunk(&chunk);
+
+    int constant = addConstant(&chunk, 2);
+    appendChunk(&chunk, OP_CONSTANT, 69);
+    appendChunk(&chunk, constant, 69);
+
+    appendChunk(&chunk, OP_RETURN, 69);
+
+    disassembleChunk(&chunk, "Test Chunk");
+
+    freeChunk(&chunk);
 
     return 0;
 }

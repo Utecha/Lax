@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdarg.h>
 
 #include "log.h"
 
@@ -7,10 +8,10 @@ laxlog(LogLevel level, const char *fmt, ...)
 {
     switch (level) {
         default: assert(0 && "Unreachable");
-        case NONE:      fprintf(stderr, ""); break;
-        case INFO:      fprintf(stderr, "[INFO] ");
-        case WARNING:   fprintf(stderr, "[WARNING] ");
-        case ERROR:     fprintf(stderr, "[ERROR] ");
+        case NONE:    break;
+        case INFO:    fprintf(stderr, "[INFO] ");    break;
+        case WARNING: fprintf(stderr, "[WARNING] "); break;
+        case ERROR:   fprintf(stderr, "[ERROR] ");   break;
     }
 
     va_list args;

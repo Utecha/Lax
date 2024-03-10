@@ -5,3 +5,5 @@ clox
 cloxdb
 lax
 laxdb
+lox/*.gch
+src/*.gch

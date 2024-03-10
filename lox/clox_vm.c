@@ -454,7 +454,12 @@ static InterpretResult run()
 
                     int b = (int)AS_NUMBER(pop());
                     int a = (int)AS_NUMBER(pop());
-                    push(NUMBER_VAL(a % b));
+
+                    if (b > a) {
+                        push(NIL_VAL);
+                    } else {
+                        push(NUMBER_VAL(a % b));
+                    }
                 } else {
                     runtimeError("Operands must be integers.");
                     return INTERPRET_RUNTIME_ERROR;

@@ -1,0 +1,26 @@
+:i argc 0
+:b stdin 0
+
+:i returncode 0
+:b stdout 213
+Humans Info:
+Chandler
+27
+Male
+69
+130
+Chandler is walking.
+Chandler is running!
+Humans Info:
+The President
+40
+Male
+80
+175
+The President is walking.
+The President is running!
+The President says 'Charge!'.
+President
+
+:b stderr 0
+

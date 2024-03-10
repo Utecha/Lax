@@ -1,0 +1,13 @@
+:i argc 0
+:b stdin 0
+
+:i returncode 0
+:b stdout 45
+String 1
+String 2
+String 3
+String 4
+String 5
+
+:b stderr 0
+

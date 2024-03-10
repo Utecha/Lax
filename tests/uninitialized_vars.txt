@@ -1,0 +1,10 @@
+:i argc 0
+:b stdin 0
+
+:i returncode 64
+:b stdout 0
+
+:b stderr 67
+Operands must be two numbers or two strings.
+On [Ln 3] in <Script>
+

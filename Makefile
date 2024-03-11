@@ -24,12 +24,12 @@ bothdbg: cloxdbg laxdbg
 
 lax: laxpch
 	@ mkdir -p $(RELEASE)
-	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(LAX) $(SOURCES)
+	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(LAX) $(SOURCES) -lm
 	@ cp $(RELEASE)/$(LAX) .
 
 laxdbg: laxpch
 	@ mkdir -p $(DEBUG)
-	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o $(DEBUG)/$(LAXDB) $(SOURCES)
+	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o $(DEBUG)/$(LAXDB) $(SOURCES) -lm
 
 laxdump:
 	@ mkdir -p $(LAX_OBJDUMP)
@@ -48,7 +48,7 @@ laxdump:
 	gcc -o $(LAX_OBJDUMP)/vm.o -c $(LAX_DIR)/vm.c
 
 laxpch:
-	@ gcc $(SOURCES) $(HEADERS)
+	@ gcc $(SOURCES) $(HEADERS) -lm
 	@ rm a.out
 
 clox: cloxpch

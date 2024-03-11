@@ -1,5 +1,6 @@
 #include <math.h>
 
+#include "bcompiler.h"
 #include "common.h"
 #include "debug.h"
 #include "vm.h"
@@ -49,19 +50,12 @@ run(VM *vm)
         int a = round((int)pop(vm));                                \
         push(vm, pow(a, b));                                        \
     } while (false)
-#define SHL()                                                       \
+#define SHIFT(op)                                                   \
     do {                                                            \
         int b = round((int)pop(vm));                                \
         int a = round((int)pop(vm));                                \
-        push(vm, a << b);                                           \
+        push(vm, a op b);                                           \
     } while (false)
-#define SHR()                                                       \
-    do {                                                            \
-        int b = round((int)pop(vm));                                \
-        int a = round((int)pop(vm));                                \
-        push(vm, a >> b);                                           \
-    } while (false)
-
 
     for (;;) {
 
@@ -95,8 +89,8 @@ run(VM *vm)
             case OP_DIVIDE:     BINARY(/); break;
             case OP_MODULO:     MOD(); break;
             case OP_POWER:      POW(); break;
-            case OP_SHL:        SHL(); break;
-            case OP_SHR:        SHR(); break;
+            case OP_SHL:        SHIFT(<<); break;
+            case OP_SHR:        SHIFT(>>); break;
             case OP_NEGATE:     push(vm, -(*(--vm->stackTop))); break;
             // case OP_NEGATE:     push(vm, pop(vm)); break;
             case OP_RETURN: {
@@ -114,14 +108,14 @@ run(VM *vm)
 #undef BINARY
 #undef MOD
 #undef POW
+#undef SHIFT
 }
 
 InterpretResult
-interpret(VM *vm, Chunk *chunk)
+interpret(VM *vm, const char *src)
 {
-    vm->chunk = chunk;
-    vm->ip = vm->chunk->code;
-    return run(vm);
+    compile(vm, src);
+    return INTERPRET_OK;
 }
 
 void

@@ -7,3 +7,5 @@ lax
 laxdb
 lox/*.gch
 src/*.gch
+count_tt
+count_tt.c

@@ -44,7 +44,7 @@ freeVM(VM *vm);
  * in the implementation file.
 */
 InterpretResult
-interpret(VM *vm, Chunk *chunk);
+interpret(VM *vm, const char *src);
 
 void
 push(VM *vm, Value value);

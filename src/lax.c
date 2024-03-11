@@ -1,15 +1,13 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "chunk.h"
 #include "common.h"
 #include "debug.h"
+#include "read.h"
 #include "vm.h"
 
 // Very simple REPL for interpreting code.
 // Not super useful for testing functions or classes in its current state.
 static void
-repl()
+repl(VM *vm)
 {
     char line[1024];
     for (;;) {
@@ -23,7 +21,20 @@ repl()
         if (!strncmp(line, "exit", 4)) {
             break;
         }
+
+        interpret(vm, line);
     }
+}
+
+static void
+runFile(VM *vm, const char *path)
+{
+    char *src = readFile(path);
+    InterpretResult result = interpret(vm, src);
+    free(src);
+
+    if (result == INTERPRET_COMPILE_ERROR) exit(65);
+    if (result == INTERPRET_RUNTIME_ERROR) exit(70);
 }
 
 /* Start her up! */
@@ -32,37 +43,17 @@ main(int argc, char **argv)
 {
     VM vm;
     initVM(&vm);
-    Chunk chunk;
-    initChunk(&chunk);
 
-    int constant = addConstant(&chunk, 4);
-    appendChunk(&chunk, OP_CONSTANT, 69);
-    appendChunk(&chunk, constant, 69);
-
-    constant = addConstant(&chunk, 4);
-    appendChunk(&chunk, OP_CONSTANT, 69);
-    appendChunk(&chunk, constant, 69);
-
-    appendChunk(&chunk, OP_POWER, 69);
-
-    constant = addConstant(&chunk, 23);
-    appendChunk(&chunk, OP_CONSTANT, 69);
-    appendChunk(&chunk, constant, 69);
-
-    constant = addConstant(&chunk, 5);
-    appendChunk(&chunk, OP_CONSTANT, 69);
-    appendChunk(&chunk, constant, 69);
-
-    appendChunk(&chunk, OP_MODULO, 69);
-    appendChunk(&chunk, OP_ADD, 69);
-    appendChunk(&chunk, OP_NEGATE, 69);
-    appendChunk(&chunk, OP_RETURN, 69);
-
-    disassembleChunk(&chunk, "Test Chunk");
-    interpret(&vm, &chunk);
+    if (argc == 1) {
+        repl(&vm);
+    } else if (argc == 2) {
+        runFile(&vm, argv[1]);
+    } else {
+        laxlog(INFO, "Usage: %s <source>", argv[0]);
+        laxlog(ERROR, "Lax currently can only run 1 source file.");
+        exit(64);
+    }
 
     freeVM(&vm);
-    freeChunk(&chunk);
-
     return 0;
 }

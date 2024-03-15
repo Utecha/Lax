@@ -28,8 +28,8 @@ typedef enum {
 /*
  * Initializes the data for the VM.
 */
-void
-initVM(VM *vm);
+VM *
+initVM();
 
 /*
  * Free's all memory allocated for the VM.

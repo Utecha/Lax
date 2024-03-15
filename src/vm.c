@@ -1,9 +1,10 @@
 #include <math.h>
+#include <string.h>
 
 #include "bcompiler.h"
+#include "chunk.h"
 #include "common.h"
 #include "debug.h"
-#include "vm.h"
 
 static void
 resetStack(VM *vm)
@@ -11,10 +12,13 @@ resetStack(VM *vm)
     vm->stackTop = vm->stack;
 }
 
-void
-initVM(VM *vm)
+VM *
+initVM()
 {
+    VM *vm = (VM *)malloc(sizeof(VM));
     resetStack(vm);
+
+    return vm;
 }
 
 void
@@ -32,29 +36,23 @@ run(VM *vm)
 {
 #define READ_BYTE()     (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
-#define BINARY(op)                                                  \
+#define BINARY_DBL(op)                                              \
     do {                                                            \
         double b = pop(vm);                                         \
         double a = pop(vm);                                         \
         push(vm, a op b);                                           \
     } while (false)
-#define MOD()                                                       \
+#define BINARY_INT(op)                                              \
     do {                                                            \
         int b = round((int)pop(vm));                                \
         int a = round((int)pop(vm));                                \
-        push(vm, a % b);                                            \
+        push(vm, a op b);                                           \
     } while (false)
 #define POW()                                                       \
     do {                                                            \
         int b = round((int)pop(vm));                                \
         int a = round((int)pop(vm));                                \
         push(vm, pow(a, b));                                        \
-    } while (false)
-#define SHIFT(op)                                                   \
-    do {                                                            \
-        int b = round((int)pop(vm));                                \
-        int a = round((int)pop(vm));                                \
-        push(vm, a op b);                                           \
     } while (false)
 
     for (;;) {
@@ -83,14 +81,17 @@ run(VM *vm)
                 Value constant = READ_CONSTANT();
                 push(vm, constant);
             } break;
-            case OP_ADD:        BINARY(+); break;
-            case OP_SUBTRACT:   BINARY(-); break;
-            case OP_MULTIPLY:   BINARY(*); break;
-            case OP_DIVIDE:     BINARY(/); break;
-            case OP_MODULO:     MOD(); break;
-            case OP_POWER:      POW(); break;
-            case OP_SHL:        SHIFT(<<); break;
-            case OP_SHR:        SHIFT(>>); break;
+            case OP_ADD:        BINARY_DBL(+);                  break;
+            case OP_SUBTRACT:   BINARY_DBL(-);                  break;
+            case OP_MULTIPLY:   BINARY_DBL(*);                  break;
+            case OP_DIVIDE:     BINARY_DBL(/);                  break;
+            case OP_MODULUS:    BINARY_INT(%);                  break;
+            case OP_POWER:      POW();                          break;
+            case OP_BAND:       BINARY_INT(&);                  break;
+            case OP_BOR:        BINARY_INT(|);                  break;
+            case OP_BXOR:       BINARY_INT(^);                  break;
+            case OP_SHL:        BINARY_INT(<<);                 break;
+            case OP_SHR:        BINARY_INT(>>);                 break;
             case OP_NEGATE:     push(vm, -(*(--vm->stackTop))); break;
             // case OP_NEGATE:     push(vm, pop(vm)); break;
             case OP_RETURN: {
@@ -99,23 +100,35 @@ run(VM *vm)
                 printf("\n");
                 return INTERPRET_OK;
             } break;
-            default: laxlog(ERROR, "Undefined OpCode: %s", instruction);
+            default: laxlog(ERROR, "Undefined Opcode: %s", instruction);
         }
     }
 
 #undef READ_BYTE
 #undef READ_CONSTANT
-#undef BINARY
-#undef MOD
+#undef BINARY_DBL
+#undef BINARY_INT
 #undef POW
-#undef SHIFT
 }
 
 InterpretResult
 interpret(VM *vm, const char *src)
 {
-    compile(vm, src);
-    return INTERPRET_OK;
+    Chunk chunk;
+    initChunk(&chunk);
+
+    if (!compile(src, &chunk)) {
+        freeChunk(&chunk);
+        return INTERPRET_COMPILE_ERROR;
+    }
+
+    vm->chunk = &chunk;
+    vm->ip = vm->chunk->code;
+
+    InterpretResult result = run(vm);
+
+    freeChunk(&chunk);
+    return result;
 }
 
 void

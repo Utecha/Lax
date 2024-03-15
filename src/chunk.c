@@ -6,9 +6,9 @@ initChunk(Chunk *chunk)
 {
     chunk->code = NULL;
     chunk->lines = NULL;
-    initValueArray(&chunk->constants);
     chunk->count = 0;
     chunk->capacity = 0;
+    initValueArray(&chunk->constants);
 }
 
 void
@@ -23,7 +23,7 @@ freeChunk(Chunk *chunk)
 void
 appendChunk(Chunk *chunk, uint8_t byte, int line)
 {
-    if (chunk->count + 1 > chunk->capacity) {
+    if (chunk->capacity < chunk->count + 1) {
         int oldCap = chunk->capacity;
         chunk->capacity = GROW_CAPACITY(oldCap);
         chunk->code = GROW_ARRAY(uint8_t, chunk->code, oldCap, chunk->capacity);

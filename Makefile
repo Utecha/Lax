@@ -1,4 +1,4 @@
-CFLAGS := -Wall -Wextra -Wno-unused-parameter
+CFLAGS := -Wall -Wextra -Wno-unused-parameter -std=c99
 DBGFLAGS := -DDEBUG -ggdb
 
 CLOX_DIR := lox
@@ -16,7 +16,7 @@ DEBUG := build/debug
 CLOX_OBJDUMP := build/objdump/clox
 LAX_OBJDUMP := build/objdump/lax
 
-default: lax
+default: lax laxdbg
 
 both: clox lax
 

@@ -14,12 +14,15 @@ typedef enum {
     OP_SUBTRACT,
     OP_MULTIPLY,
     OP_DIVIDE,
-    OP_MODULO,
+    OP_MODULUS,
     OP_POWER,
+    OP_BAND,
+    OP_BOR,
+    OP_BXOR,
     OP_SHL,
     OP_SHR,
     OP_NEGATE,
-    OP_RETURN,
+    OP_RETURN
 } OpCode;
 
 /*

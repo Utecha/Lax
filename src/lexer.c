@@ -91,7 +91,9 @@ skipWhitespace(Lexer *l)
         switch (c) {
             case ' ':
             case '\r':
-            case '\t': advance(l); break;
+            case '\t':
+                advance(l);
+                break;
             case '\n': {
                 l->line++;
                 advance(l);
@@ -99,6 +101,25 @@ skipWhitespace(Lexer *l)
             case '/': {
                 if (peekNext(l) == '/') {
                     while (peek(l) != '\n' && !isAtEnd(l)) advance(l);
+                } else if (peekNext(l) == '*') {
+                    for (;;) {
+                        if (isAtEnd(l)) {
+                            errorToken(l, "Unterminated comment block.");
+                            break;
+                        }
+
+                        if (peek(l) == '\n') {
+                            l->line++;
+                        }
+
+                        if (peek(l) == '*' && peekNext(l) == '/') {
+                            advance(l);
+                            advance(l);
+                            break;
+                        }
+
+                        advance(l);
+                    }
                 } else {
                     return;
                 }
@@ -242,7 +263,7 @@ scanToken(Lexer *l)
         case ';':   return makeToken(l, TK_SEMICOLON);
         case ',':   return makeToken(l, TK_COMMA);
         case '.':   return makeToken(l, TK_DOT);
-        case '%':   return makeToken(l, TK_MODULO);
+        case '%':   return makeToken(l, TK_MODULUS);
         case '=':   return makeToken(l, match(l, '=') ? TK_EQEQ : TK_EQ);
         case '!':   return makeToken(l, match(l, '=') ? TK_BANGEQ : TK_BANG);
         case '&':   return makeToken(l, TK_BAND);

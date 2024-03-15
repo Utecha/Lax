@@ -13,7 +13,7 @@ typedef enum {
     // Arithmetic Tokens
     TK_MINUS, TK_PLUS,
     TK_SLASH, TK_STAR,
-    TK_MODULO, TK_POWER,
+    TK_MODULUS, TK_POWER,
 
     // Equality Tokens
     TK_BANG, TK_BANGEQ,

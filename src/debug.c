@@ -59,8 +59,11 @@ disassembleInstruction(Chunk *chunk, int offset)
         case OP_SUBTRACT:   return simpleInstruction("OP_SUBTRACT", offset);
         case OP_MULTIPLY:   return simpleInstruction("OP_MULTIPLY", offset);
         case OP_DIVIDE:     return simpleInstruction("OP_DIVIDE", offset);
-        case OP_MODULO:     return simpleInstruction("OP_MODULO", offset);
+        case OP_MODULUS:    return simpleInstruction("OP_MODULO", offset);
         case OP_POWER:      return simpleInstruction("OP_POWER", offset);
+        case OP_BAND:       return simpleInstruction("OP_BAND", offset);
+        case OP_BOR:        return simpleInstruction("OP_BOR", offset);
+        case OP_BXOR:       return simpleInstruction("OP_BXOR", offset);
         case OP_SHL:        return simpleInstruction("OP_SHL", offset);
         case OP_SHR:        return simpleInstruction("OP_SHR", offset);
         case OP_NEGATE:     return simpleInstruction("OP_NEGATE", offset);

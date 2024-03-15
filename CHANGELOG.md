@@ -236,3 +236,21 @@ I also have now moved the entire 'src' directories contents into 'clox'.
 For now, I will slowly be updating this version bit by bit with small new features as I rewrite and refactor. That way, there is something that is still up to date and working.
 
 ## LAX
+
+- [lax 0.0.5](#lax000)
+
+### lax 0.0.5
+
+Well, plans have definitely changed. I've caught back up to the equivalent of Chapter 17. It's basically just a glorified calculator, but the important thing is it is working. It was seg-faulting on me and it took me forever to figure out why but I did and everything seems to work now.
+
+I will be marking this point as version '0.0.5'. I will likely not call version '0.1.0' until I've added control flow, since that is the point where the language will actually be relatively usable.
+
+One thing that is different compared to clox is that I have added all of the arithmetic and bitwise operators now rather than later, so they can be played with at this point in the language.
+
+However, plans in regards to how I am going to split up modules has definitely changed.
+
+For one, I have decided not to separate the tokens from the lexer. There wasn't much of a need since they're just in the header and not the source file anyways.
+
+It turns out I had forgotten just how intertwined the parser and compiler are. I would have to make just about everything accessible outside their respective modules in order to do so which I'm not sure is the best move. Not to mention, the parsing functions themselves are directly tied to the compiler. They are responsible for handling the actual emission of the bytecode. The compiler itself really only consists of the functions to emit the bytes, and the 'compile' function that instantiates everything beneath it and runs it all.
+
+With that in mind, I will likely end up writing a standalone parser for this project to use when I go to implement native compilation.

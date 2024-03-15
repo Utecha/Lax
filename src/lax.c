@@ -41,19 +41,18 @@ runFile(VM *vm, const char *path)
 int
 main(int argc, char **argv)
 {
-    VM vm;
-    initVM(&vm);
+    VM *vm = initVM();
 
     if (argc == 1) {
-        repl(&vm);
+        repl(vm);
     } else if (argc == 2) {
-        runFile(&vm, argv[1]);
+        runFile(vm, argv[1]);
     } else {
         laxlog(INFO, "Usage: %s <source>", argv[0]);
         laxlog(ERROR, "Lax currently can only run 1 source file.");
         exit(64);
     }
 
-    freeVM(&vm);
+    freeVM(vm);
     return 0;
 }

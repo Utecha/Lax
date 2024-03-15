@@ -21,7 +21,7 @@ freeValueArray(ValueArray *array)
 void
 appendValueArray(ValueArray *array, Value value)
 {
-    if (array->count + 1 > array->capacity) {
+    if (array->capacity < array->count + 1) {
         int oldCap = array->capacity;
         array->capacity = GROW_CAPACITY(oldCap);
         array->values = GROW_ARRAY(Value, array->values, oldCap, array->capacity);

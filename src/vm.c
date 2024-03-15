@@ -78,6 +78,7 @@ initVM()
     VM *vm = (VM *)malloc(sizeof(VM));
     resetStack(vm);
     vm->objects = NULL;
+    initTable(&vm->globals);
     initTable(&vm->strings);
 
     return vm;
@@ -99,6 +100,7 @@ run(VM *vm)
 {
 #define READ_BYTE()     (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
+#define READ_STRING()   AS_STRING(READ_CONSTANT())
 #define BINARY_DBL(valueType, op)                                   \
     do {                                                            \
         if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) {   \
@@ -159,6 +161,29 @@ run(VM *vm)
             case OP_NULL:       push(vm, NULL_VAL);         break;
             case OP_TRUE:       push(vm, BOOL_VAL(true));   break;
             case OP_FALSE:      push(vm, BOOL_VAL(false));  break;
+            case OP_POP:        pop(vm);                    break;
+            case OP_GET_GLOBAL: {
+                ObjString *name = READ_STRING();
+                Value value;
+                if (!tableGet(&vm->globals, name, &value)) {
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(vm, value);
+            } break;
+            case OP_SET_GLOBAL: {
+                ObjString *name = READ_STRING();
+                if (tableSet(&vm->globals, name, peek(vm, 0))) {
+                    tableDelete(&vm->globals, name);
+                    runtimeError(vm, "Undefined variable '%s'.", name->chars);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
+            case OP_DEFINE_GLOBAL: {
+                ObjString *name = READ_STRING();
+                tableSet(&vm->globals, name, peek(vm, 0));
+                pop(vm);
+            } break;
             case OP_EQUAL: {
                 Value b = pop(vm);
                 Value a = pop(vm);
@@ -198,10 +223,11 @@ run(VM *vm)
                 }
                 push(vm, NUMBER_VAL(-AS_NUMBER(*(--vm->stackTop))));
             } break;
-            case OP_RETURN: {
-                // printValue(pop(vm));
+            case OP_ECHO: {
                 printValue(*(--vm->stackTop));
                 printf("\n");
+            } break;
+            case OP_RETURN: {
                 return INTERPRET_OK;
             } break;
             default: laxlog(ERROR, "Undefined Opcode: %s", instruction);
@@ -210,6 +236,7 @@ run(VM *vm)
 
 #undef READ_BYTE
 #undef READ_CONSTANT
+#undef READ_STRING
 #undef BINARY_DBL
 #undef BINARY_INT
 #undef POW

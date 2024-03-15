@@ -35,7 +35,7 @@ typedef struct Compiler {
     Chunk *compiling;
 } Compiler;
 
-typedef void (*ParseFn)(Compiler *compiler);
+typedef void (*ParseFn)(Compiler *compiler, bool canAssign);
 
 typedef struct {
     ParseFn prefix;

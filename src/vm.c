@@ -78,6 +78,7 @@ initVM()
     VM *vm = (VM *)malloc(sizeof(VM));
     resetStack(vm);
     vm->objects = NULL;
+    initTable(&vm->strings);
 
     return vm;
 }
@@ -85,6 +86,7 @@ initVM()
 void
 freeVM(VM *vm)
 {
+    freeTable(&vm->strings);
     freeObjects(vm);
 }
 

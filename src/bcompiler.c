@@ -1,5 +1,6 @@
 #include "bcompiler.h"
 #include "chunk.h"
+#include "object.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -148,18 +149,35 @@ binary(Compiler *compiler)
     parsePrecedence(compiler, (Precedence)(rule->precedence + 1));
 
     switch (opType) {
-        case TK_PLUS:       emitByte(compiler, OP_ADD);        break;
-        case TK_MINUS:      emitByte(compiler, OP_SUBTRACT);   break;
-        case TK_STAR:       emitByte(compiler, OP_MULTIPLY);   break;
-        case TK_SLASH:      emitByte(compiler, OP_DIVIDE);     break;
-        case TK_MODULUS:    emitByte(compiler, OP_MODULUS);    break;
-        case TK_POWER:      emitByte(compiler, OP_POWER);      break;
-        case TK_BAND:       emitByte(compiler, OP_BAND);       break;
-        case TK_BOR:        emitByte(compiler, OP_BOR);        break;
-        case TK_BXOR:       emitByte(compiler, OP_BXOR);       break;
-        case TK_SHL:        emitByte(compiler, OP_SHL);        break;
-        case TK_SHR:        emitByte(compiler, OP_SHR);        break;
-        default:    return;
+        case TK_BANGEQ:     emitBytes(compiler, OP_EQUAL, OP_NOT);      break;
+        case TK_EQEQ:       emitByte(compiler, OP_EQUAL);               break;
+        case TK_GREATER:    emitByte(compiler, OP_GREATER);             break;
+        case TK_GTEQ:       emitBytes(compiler, OP_LESS, OP_NOT);       break;
+        case TK_LESS:       emitByte(compiler, OP_LESS);                break;
+        case TK_LTEQ:       emitBytes(compiler, OP_GREATER, OP_NOT);    break;
+        case TK_PLUS:       emitByte(compiler, OP_ADD);                 break;
+        case TK_MINUS:      emitByte(compiler, OP_SUBTRACT);            break;
+        case TK_STAR:       emitByte(compiler, OP_MULTIPLY);            break;
+        case TK_SLASH:      emitByte(compiler, OP_DIVIDE);              break;
+        case TK_MODULUS:    emitByte(compiler, OP_MODULUS);             break;
+        case TK_POWER:      emitByte(compiler, OP_POWER);               break;
+        case TK_BAND:       emitByte(compiler, OP_BAND);                break;
+        case TK_BOR:        emitByte(compiler, OP_BOR);                 break;
+        case TK_BXOR:       emitByte(compiler, OP_BXOR);                break;
+        case TK_SHL:        emitByte(compiler, OP_SHL);                 break;
+        case TK_SHR:        emitByte(compiler, OP_SHR);                 break;
+        default:            return; // Unreachable
+    }
+}
+
+static void
+literal(Compiler *compiler)
+{
+    switch (compiler->parser->previous.type) {
+        case TK_FALSE:      emitByte(compiler, OP_FALSE); break;
+        case TK_NULL:       emitByte(compiler, OP_NULL);  break;
+        case TK_TRUE:       emitByte(compiler, OP_TRUE);  break;
+        default:            return; // Unreachable
     }
 }
 
@@ -180,7 +198,20 @@ static void
 number(Compiler *compiler)
 {
     double value = strtod(compiler->parser->previous.start, NULL);
-    emitConstant(compiler, value);
+    emitConstant(compiler, NUMBER_VAL(value));
+}
+
+static void
+string(Compiler *compiler)
+{
+    emitConstant(
+        compiler,
+        OBJ_VAL(copyString(
+                compiler->parser->vm,
+                compiler->parser->previous.start + 1,
+                compiler->parser->previous.length - 2)
+        )
+    );
 }
 
 static void
@@ -191,6 +222,7 @@ unary(Compiler *compiler)
 
     switch (opType) {
         case TK_MINUS:  emitByte(compiler, OP_NEGATE);  break;
+        case TK_BANG:   emitByte(compiler, OP_NOT);     break;
         default:        return; // Unreachable
     }
 }
@@ -212,14 +244,14 @@ ParseRule rules[] = {
     [TK_SLASH]      = { NULL,       binary, PREC_FACTOR },
     [TK_STAR]       = { NULL,       binary, PREC_FACTOR },
     [TK_MODULUS]    = { NULL,       binary, PREC_FACTOR },
-    [TK_POWER]      = { NULL,       binary, PREC_FACTOR },
-    [TK_BANG]       = { NULL,       NULL,   PREC_NONE },
-    [TK_BANGEQ]     = { NULL,       NULL,   PREC_NONE },
-    [TK_EQEQ]       = { NULL,       NULL,   PREC_NONE },
-    [TK_GREATER]    = { NULL,       NULL,   PREC_NONE },
-    [TK_GTEQ]       = { NULL,       NULL,   PREC_NONE },
-    [TK_LESS]       = { NULL,       NULL,   PREC_NONE },
-    [TK_LTEQ]       = { NULL,       NULL,   PREC_NONE },
+    [TK_POWER]      = { NULL,       binary, PREC_UNARY },
+    [TK_BANG]       = { unary,      NULL,   PREC_NONE },
+    [TK_BANGEQ]     = { NULL,       binary, PREC_EQUALITY },
+    [TK_EQEQ]       = { NULL,       binary, PREC_EQUALITY },
+    [TK_GREATER]    = { NULL,       binary, PREC_COMPARISON },
+    [TK_GTEQ]       = { NULL,       binary, PREC_COMPARISON },
+    [TK_LESS]       = { NULL,       binary, PREC_COMPARISON },
+    [TK_LTEQ]       = { NULL,       binary, PREC_COMPARISON },
     [TK_BAND]       = { NULL,       binary, PREC_BITWISE },
     [TK_BOR]        = { NULL,       binary, PREC_BITWISE },
     [TK_BXOR]       = { NULL,       binary, PREC_BITWISE },
@@ -233,7 +265,7 @@ ParseRule rules[] = {
     [TK_STAREQ]     = { NULL,       NULL,   PREC_NONE },
     [TK_EQ]         = { NULL,       NULL,   PREC_NONE },
     [TK_IDENTIFIER] = { NULL,       NULL,   PREC_NONE },
-    [TK_STRING]     = { NULL,       NULL,   PREC_NONE },
+    [TK_STRING]     = { string,     NULL,   PREC_NONE },
     [TK_NUMBER]     = { number,     NULL,   PREC_NONE },
     [TK_AND]        = { NULL,       NULL,   PREC_NONE },
     [TK_BREAK]      = { NULL,       NULL,   PREC_NONE },
@@ -243,17 +275,17 @@ ParseRule rules[] = {
     [TK_DO]         = { NULL,       NULL,   PREC_NONE },
     [TK_ELSE]       = { NULL,       NULL,   PREC_NONE },
     [TK_ECHO]       = { NULL,       NULL,   PREC_NONE },
-    [TK_FALSE]      = { NULL,       NULL,   PREC_NONE },
+    [TK_FALSE]      = { literal,    NULL,   PREC_NONE },
     [TK_FOR]        = { NULL,       NULL,   PREC_NONE },
     [TK_FN]         = { NULL,       NULL,   PREC_NONE },
     [TK_IF]         = { NULL,       NULL,   PREC_NONE },
     [TK_MODULE]     = { NULL,       NULL,   PREC_NONE },
-    [TK_NULL]       = { NULL,       NULL,   PREC_NONE },
+    [TK_NULL]       = { literal,    NULL,   PREC_NONE },
     [TK_OR]         = { NULL,       NULL,   PREC_NONE },
     [TK_RETURN]     = { NULL,       NULL,   PREC_NONE },
     [TK_SELF]       = { NULL,       NULL,   PREC_NONE },
     [TK_SUPER]      = { NULL,       NULL,   PREC_NONE },
-    [TK_TRUE]       = { NULL,       NULL,   PREC_NONE },
+    [TK_TRUE]       = { literal,    NULL,   PREC_NONE },
     [TK_USING]      = { NULL,       NULL,   PREC_NONE },
     [TK_VAR]        = { NULL,       NULL,   PREC_NONE },
     [TK_WHILE]      = { NULL,       NULL,   PREC_NONE },
@@ -286,30 +318,11 @@ parsePrecedence(Compiler *compiler, Precedence precedence)
 }
 // End Parser
 
-static void
-lexerDebugOutput(Parser *parser)
-{
-    int line = -1;
-    for (;;) {
-        Token token = scanToken(&parser->lexer);
-        if (token.line != line) {
-            printf("%4d ", token.line);
-            line = token.line;
-        } else {
-            printf("   | ");
-        }
-        printf("%2d '%.*s'\n", token.type, token.length, token.start);
-
-        if (token.type == TK_EOF) break;
-    }
-}
-
 bool
-compile(const char *src, Chunk *chunk)
+compile(VM *vm, const char *src, Chunk *chunk)
 {
-    // compilingChunk = chunk;
-
     Parser parser;
+    parser.vm = vm;
     parser.hadError = false;
     parser.panicMode = false;
 
@@ -319,8 +332,6 @@ compile(const char *src, Chunk *chunk)
 
     Compiler compiler;
     initCompiler(&parser, &compiler, chunk);
-
-    // lexerDebugOutput(&parser);
 
     advance(compiler.parser);
     expression(&compiler);

@@ -38,6 +38,8 @@ typedef enum {
     TK_IDENTIFIER,
     TK_STRING,
     TK_NUMBER,
+    // TK_INTEGER,
+    // TK_DOUBLE,
 
     // Lax Keyword Tokens
     TK_AND, TK_BREAK,

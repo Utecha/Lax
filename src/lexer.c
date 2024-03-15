@@ -229,9 +229,7 @@ number(Lexer *l)
 {
     while (isDigit(peek(l))) advance(l);
 
-    // Look for a fractional part
     if (peek(l) == '.' && isDigit(peekNext(l))) {
-        // Consume the '.'
         advance(l);
 
         while (isDigit(peek(l))) advance(l);

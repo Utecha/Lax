@@ -1,10 +1,54 @@
 #include <math.h>
+#include <stdarg.h>
 #include <string.h>
 
 #include "bcompiler.h"
 #include "chunk.h"
-#include "common.h"
 #include "debug.h"
+#include "object.h"
+#include "memory.h"
+
+void
+push(VM *vm, Value value)
+{
+    *vm->stackTop = value;
+    vm->stackTop++;
+}
+
+Value
+pop(VM *vm)
+{
+    vm->stackTop--;
+    return *vm->stackTop;
+}
+
+static Value
+peek(VM *vm, int distance)
+{
+    return vm->stackTop[-1 - distance];
+}
+
+static bool
+isFalsey(Value value)
+{
+    return IS_NULL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+}
+
+static void
+concatenate(VM *vm)
+{
+    ObjString *b = AS_STRING(pop(vm));
+    ObjString *a = AS_STRING(pop(vm));
+
+    int length = a->length + b->length;
+    char *chars = ALLOCATE(char, length + 1);
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+
+    ObjString *result = takeString(vm, chars, length);
+    push(vm, OBJ_VAL(result));
+}
 
 static void
 resetStack(VM *vm)
@@ -12,11 +56,28 @@ resetStack(VM *vm)
     vm->stackTop = vm->stack;
 }
 
+static void
+runtimeError(VM *vm, const char *fmt, ...)
+{
+    size_t instruction = vm->ip - vm->chunk->code - 1;
+    int line = vm->chunk->lines[instruction];
+    laxlog(ERROR, "on [Ln %d] in 'Script'", line);
+
+    va_list args;
+    va_start(args, fmt);
+    vfprintf(stderr, fmt, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    resetStack(vm);
+}
+
 VM *
 initVM()
 {
     VM *vm = (VM *)malloc(sizeof(VM));
     resetStack(vm);
+    vm->objects = NULL;
 
     return vm;
 }
@@ -24,7 +85,7 @@ initVM()
 void
 freeVM(VM *vm)
 {
-
+    freeObjects(vm);
 }
 
 /*
@@ -36,23 +97,35 @@ run(VM *vm)
 {
 #define READ_BYTE()     (*vm->ip++)
 #define READ_CONSTANT() (vm->chunk->constants.values[READ_BYTE()])
-#define BINARY_DBL(op)                                              \
+#define BINARY_DBL(valueType, op)                                   \
     do {                                                            \
-        double b = pop(vm);                                         \
-        double a = pop(vm);                                         \
-        push(vm, a op b);                                           \
+        if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) {   \
+            runtimeError(vm, "Operands must be numbers.");          \
+            return INTERPRET_RUNTIME_ERROR;                         \
+        }                                                           \
+        double b = AS_NUMBER(pop(vm));                              \
+        double a = AS_NUMBER(pop(vm));                              \
+        push(vm, valueType(a op b));                                \
     } while (false)
-#define BINARY_INT(op)                                              \
+#define BINARY_INT(valueType, op)                                   \
     do {                                                            \
-        int b = round((int)pop(vm));                                \
-        int a = round((int)pop(vm));                                \
-        push(vm, a op b);                                           \
+        if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) {   \
+            runtimeError(vm, "Operands must be numbers.");          \
+            return INTERPRET_RUNTIME_ERROR;                         \
+        }                                                           \
+        int b = round((int)AS_NUMBER(pop(vm)));                     \
+        int a = round((int)AS_NUMBER(pop(vm)));                     \
+        push(vm, valueType(a op b));                                \
     } while (false)
-#define POW()                                                       \
+#define POW(valueType)                                              \
     do {                                                            \
-        int b = round((int)pop(vm));                                \
-        int a = round((int)pop(vm));                                \
-        push(vm, pow(a, b));                                        \
+        if (!IS_NUMBER(peek(vm, 0)) || !IS_NUMBER(peek(vm, 1))) {   \
+            runtimeError(vm, "Operands must be numbers.");          \
+            return INTERPRET_RUNTIME_ERROR;                         \
+        }                                                           \
+        int b = round((int)AS_NUMBER(pop(vm)));                     \
+        int a = round((int)AS_NUMBER(pop(vm)));                     \
+        push(vm, valueType(pow(a, b)));                             \
     } while (false)
 
     for (;;) {
@@ -81,19 +154,48 @@ run(VM *vm)
                 Value constant = READ_CONSTANT();
                 push(vm, constant);
             } break;
-            case OP_ADD:        BINARY_DBL(+);                  break;
-            case OP_SUBTRACT:   BINARY_DBL(-);                  break;
-            case OP_MULTIPLY:   BINARY_DBL(*);                  break;
-            case OP_DIVIDE:     BINARY_DBL(/);                  break;
-            case OP_MODULUS:    BINARY_INT(%);                  break;
-            case OP_POWER:      POW();                          break;
-            case OP_BAND:       BINARY_INT(&);                  break;
-            case OP_BOR:        BINARY_INT(|);                  break;
-            case OP_BXOR:       BINARY_INT(^);                  break;
-            case OP_SHL:        BINARY_INT(<<);                 break;
-            case OP_SHR:        BINARY_INT(>>);                 break;
-            case OP_NEGATE:     push(vm, -(*(--vm->stackTop))); break;
-            // case OP_NEGATE:     push(vm, pop(vm)); break;
+            case OP_NULL:       push(vm, NULL_VAL);         break;
+            case OP_TRUE:       push(vm, BOOL_VAL(true));   break;
+            case OP_FALSE:      push(vm, BOOL_VAL(false));  break;
+            case OP_EQUAL: {
+                Value b = pop(vm);
+                Value a = pop(vm);
+                push(vm, BOOL_VAL(valuesEqual(a, b)));
+            } break;
+            case OP_GREATER:    BINARY_DBL(BOOL_VAL, >);    break;
+            case OP_LESS:       BINARY_DBL(BOOL_VAL, <);    break;
+            case OP_ADD: {
+                if (IS_STRING(peek(vm, 0)) && IS_STRING(peek(vm, 1))) {
+                    concatenate(vm);
+                } else if (IS_NUMBER(peek(vm, 0)) && IS_NUMBER(peek(vm, 1))) {
+                    double b = AS_NUMBER(pop(vm));
+                    double a = AS_NUMBER(pop(vm));
+                    push(vm, NUMBER_VAL(a + b));
+                } else {
+                    runtimeError(vm, "Operands must be two numbers or two strings.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+            } break;
+            case OP_SUBTRACT:   BINARY_DBL(NUMBER_VAL, -);  break;
+            case OP_MULTIPLY:   BINARY_DBL(NUMBER_VAL, *);  break;
+            case OP_DIVIDE:     BINARY_DBL(NUMBER_VAL, /);  break;
+            case OP_MODULUS:    BINARY_INT(NUMBER_VAL, %);  break;
+            case OP_POWER:      POW(NUMBER_VAL);            break;
+            case OP_NOT: {
+                push(vm, BOOL_VAL(isFalsey(*(--vm->stackTop))));
+            } break;
+            case OP_BAND:       BINARY_INT(NUMBER_VAL, &);  break;
+            case OP_BOR:        BINARY_INT(NUMBER_VAL, |);  break;
+            case OP_BXOR:       BINARY_INT(NUMBER_VAL, ^);  break;
+            case OP_SHL:        BINARY_INT(NUMBER_VAL, <<); break;
+            case OP_SHR:        BINARY_INT(NUMBER_VAL, >>); break;
+            case OP_NEGATE: {
+                if (!IS_NUMBER(peek(vm, 0))) {
+                    runtimeError(vm, "Operand must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(vm, NUMBER_VAL(-AS_NUMBER(*(--vm->stackTop))));
+            } break;
             case OP_RETURN: {
                 // printValue(pop(vm));
                 printValue(*(--vm->stackTop));
@@ -117,7 +219,7 @@ interpret(VM *vm, const char *src)
     Chunk chunk;
     initChunk(&chunk);
 
-    if (!compile(src, &chunk)) {
+    if (!compile(vm, src, &chunk)) {
         freeChunk(&chunk);
         return INTERPRET_COMPILE_ERROR;
     }
@@ -129,18 +231,4 @@ interpret(VM *vm, const char *src)
 
     freeChunk(&chunk);
     return result;
-}
-
-void
-push(VM *vm, Value value)
-{
-    *vm->stackTop = value;
-    vm->stackTop++;
-}
-
-Value
-pop(VM *vm)
-{
-    vm->stackTop--;
-    return *vm->stackTop;
 }

@@ -6,6 +6,7 @@
 #include "vm.h"
 
 typedef struct {
+    VM *vm;
     Lexer lexer;
     Token current;
     Token previous;
@@ -48,6 +49,6 @@ typedef struct {
  * Lax Bytecode.
 */
 bool
-compile(const char *src, Chunk *chunk);
+compile(VM *vm, const char *src, Chunk *chunk);
 
 #endif // LAX_BCOMPILER_H

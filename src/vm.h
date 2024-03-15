@@ -12,11 +12,16 @@
  * It takes chunks of bytecode and interprets it.
 */
 typedef struct {
+    // Bytecode Chunk & Instruction Pointer
     Chunk *chunk;
     uint8_t *ip;
 
+    // The Stack
     Value stack[STACK_MAX];
     Value *stackTop;
+
+    // Objects
+    Obj *objects;
 } VM;
 
 typedef enum {

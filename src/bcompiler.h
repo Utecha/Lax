@@ -1,9 +1,8 @@
 #ifndef LAX_BCOMPILER_H
 #define LAX_BCOMPILER_H
 
-#include "common.h"
 #include "lexer.h"
-#include "vm.h"
+#include "object.h"
 
 typedef struct {
     VM *vm;

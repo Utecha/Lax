@@ -38,8 +38,6 @@ typedef enum {
     TK_IDENTIFIER,
     TK_STRING,
     TK_NUMBER,
-    // TK_INTEGER,
-    // TK_DOUBLE,
 
     // Lax Keyword Tokens
     TK_AND, TK_BREAK,
@@ -48,10 +46,10 @@ typedef enum {
     TK_ELSE, TK_ECHO,
     TK_FALSE, TK_FOR,
     TK_FN, TK_IF,
-    TK_MODULE, TK_NULL,
-    TK_OR, TK_RETURN,
-    TK_SELF, TK_SUPER,
-    TK_TRUE, TK_USING,
+    TK_INCLUDE, TK_MODULE,
+    TK_NULL, TK_OR,
+    TK_RETURN, TK_SELF,
+    TK_SUPER, TK_TRUE,
     TK_VAR, TK_WHILE,
 
     // Special Tokens

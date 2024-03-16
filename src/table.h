@@ -1,6 +1,7 @@
 #ifndef LAX_TABLE_H
 #define LAX_TABLE_H
 
+#include "common.h"
 #include "value.h"
 
 typedef struct {

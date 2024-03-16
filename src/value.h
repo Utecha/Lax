@@ -11,8 +11,6 @@ typedef enum {
     VAL_NULL,
     VAL_NUMBER,
     VAL_OBJ,
-    // VAL_INTEGER,
-    // VAL_DOUBLE,
 } ValueType;
 
 /*

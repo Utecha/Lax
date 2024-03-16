@@ -1,8 +1,11 @@
 #include <string.h>
 
 #include "bcompiler.h"
-#include "chunk.h"
+#include "common.h"
+#include "lexer.h"
+#include "memory.h"
 #include "object.h"
+#include "table.h"
 #include "value.h"
 
 #ifdef DEBUG_PRINT_CODE
@@ -87,7 +90,11 @@ currentChunk(Compiler *compiler)
 static void
 emitByte(Compiler *compiler, uint8_t byte)
 {
-    appendChunk(currentChunk(compiler), byte, compiler->parser->previous.line);
+    appendChunk(
+        currentChunk(compiler),
+        byte,
+        compiler->parser->previous.line
+    );
 }
 
 static void
@@ -95,6 +102,28 @@ emitBytes(Compiler *compiler, uint8_t byte, uint8_t byte2)
 {
     emitByte(compiler, byte);
     emitByte(compiler, byte2);
+}
+
+static void
+emitLoop(Compiler *compiler, int loopStart)
+{
+    emitByte(compiler, OP_LOOP);
+
+    int offset = currentChunk(compiler)->count - loopStart + 2;
+    if (offset > UINT16_MAX) error(compiler->parser, "Loop body is too large.");
+
+    emitByte(compiler, (offset >> 8) & 0xff);
+    emitByte(compiler, offset & 0xff);
+}
+
+static int
+emitJump(Compiler *compiler, uint8_t instruction)
+{
+    emitByte(compiler, instruction);
+    emitByte(compiler, 0xff);
+    emitByte(compiler, 0xff);
+
+    return currentChunk(compiler)->count - 2;
 }
 
 static void
@@ -119,6 +148,20 @@ static void
 emitConstant(Compiler *compiler, Value value)
 {
     emitBytes(compiler, OP_CONSTANT, makeConstant(compiler, value));
+}
+
+static void
+patchJump(Compiler *compiler, int offset)
+{
+    // -2 to adjust for the jump offset in the bytecode chunk
+    int jump = currentChunk(compiler)->count - offset - 2;
+
+    if (jump > UINT16_MAX) {
+        error(compiler->parser, "Too much code to jump over.");
+    }
+
+    currentChunk(compiler)->code[offset] = (jump >> 8) & 0xff;
+    currentChunk(compiler)->code[offset + 1] = jump & 0xff;
 }
 
 static void
@@ -247,17 +290,54 @@ number(Compiler *compiler, bool canAssign)
     emitConstant(compiler, NUMBER_VAL(value));
 }
 
+static int
+escapeSequence(Parser *parser, char *string, int length)
+{
+    for (int i = 0; i < length - 1; i++) {
+        if (string[i] == '\\') {
+            switch (string[i + 1]) {
+                case '\\':  string[i + 1] = '\\';   break;
+                case 'b':   string[i + 1] = '\b';   break;
+                case 'n':   string[i + 1] = '\n';   break;
+                case 'r':   string[i + 1] = '\r';   break;
+                case 't':   string[i + 1] = '\t';   break;
+                case 'v':   string[i + 1] = '\v';   break;
+                case '"':   break;
+                default:    continue;
+            }
+            memmove(&string[i], &string[i + 1], length - i);
+            length -= 1;
+        }
+    }
+
+    return length;
+}
+
+static Value
+parseString(Compiler *compiler, bool canAssign)
+{
+    Parser *parser = compiler->parser;
+    int strLen = parser->previous.length - 2;
+    char *string = ALLOCATE(char, strLen + 1);
+
+    memcpy(string, parser->previous.start + 1, strLen);
+    int length = escapeSequence(parser, string, strLen);
+
+    if (length != strLen) {
+        string = GROW_ARRAY(char, string, strLen + 1, length + 1);
+    }
+    string[length] = '\0';
+    return OBJ_VAL(takeString(parser->vm, string, length));
+}
+
 static void
 string(Compiler *compiler, bool canAssign)
 {
-    emitConstant(
-        compiler,
-        OBJ_VAL(copyString(
-                compiler->parser->vm,
-                compiler->parser->previous.start + 1,
-                compiler->parser->previous.length - 2)
-        )
-    );
+    // emitConstant(compiler, OBJ_VAL(
+    //     copyString(compiler->parser->vm, 
+    //                compiler->parser->previous.start + 1,
+    //                compiler->parser->previous.length - 2)));
+    emitConstant(compiler, parseString(compiler, canAssign));
 }
 
 static void
@@ -337,8 +417,73 @@ static void
 expressionStatement(Compiler *compiler)
 {
     expression(compiler);
-    consume(compiler, TK_SEMICOLON, "Expected ';' after expression.");
+    consume(compiler, TK_SEMICOLON, "Expected ';' after expression or loop initializer.");
     emitByte(compiler, OP_POP);
+}
+
+static void
+forStatement(Compiler *compiler)
+{
+    beginScope(compiler);
+    consume(compiler, TK_LPAREN, "Expected '(' after 'for'.");
+    if (match(compiler, TK_SEMICOLON)) {
+        // No initializer
+    } else if (match(compiler, TK_VAR)) {
+        varDeclaration(compiler);
+    } else {
+        expressionStatement(compiler);
+    }
+
+    int loopStart = currentChunk(compiler)->count;
+    int exitJump = -1;
+    if (!match(compiler, TK_SEMICOLON)) {
+        expression(compiler);
+        consume(compiler, TK_SEMICOLON, "Expected ';' after loop condition.");
+
+        // Jump out of the loop of the condition is false
+        exitJump = emitJump(compiler, OP_JUMP_FALSE);
+        emitByte(compiler, OP_POP); // Condition
+    }
+
+    if (!match(compiler, TK_RPAREN)) {
+        int bodyJump = emitJump(compiler, OP_JUMP);
+        int incrementStart = currentChunk(compiler)->count;
+        expression(compiler);
+        emitByte(compiler, OP_POP);
+        consume(compiler, TK_RPAREN, "Expected ')' after for clauses.");
+
+        emitLoop(compiler, loopStart);
+        loopStart = incrementStart;
+        patchJump(compiler, bodyJump);
+    }
+
+    statement(compiler);
+    emitLoop(compiler, loopStart);
+
+    if (exitJump != -1) {
+        patchJump(compiler, exitJump);
+        emitByte(compiler, OP_POP);
+    }
+
+    endScope(compiler);
+}
+
+static void
+ifStatement(Compiler *compiler)
+{
+    consume(compiler, TK_LPAREN, "Expected '(' after 'if'.");
+    expression(compiler);
+    consume(compiler, TK_RPAREN, "Expected ')' after condition.");
+
+    int thenJump = emitJump(compiler, OP_JUMP_FALSE);
+    emitByte(compiler, OP_POP);
+    statement(compiler);
+    int elseJump = emitJump(compiler, OP_JUMP);
+    patchJump(compiler, thenJump);
+    emitByte(compiler, OP_POP);
+
+    if (match(compiler, TK_ELSE)) statement(compiler);
+    patchJump(compiler, elseJump);
 }
 
 static void
@@ -347,6 +492,23 @@ echoStatement(Compiler *compiler)
     expression(compiler);
     consume(compiler, TK_SEMICOLON, "Expected ';' after value.");
     emitByte(compiler, OP_ECHO);
+}
+
+static void
+whileStatement(Compiler *compiler)
+{
+    int loopStart = currentChunk(compiler)->count;
+    consume(compiler, TK_LPAREN, "Expected '(' after 'while'.");
+    expression(compiler);
+    consume(compiler, TK_RPAREN, "Expected ')' after condition.");
+
+    int exitJump = emitJump(compiler, OP_JUMP_FALSE);
+    emitByte(compiler, OP_POP);
+    statement(compiler);
+    emitLoop(compiler, loopStart);
+
+    patchJump(compiler, exitJump);
+    emitByte(compiler, OP_POP);
 }
 
 static void
@@ -394,6 +556,12 @@ statement(Compiler *compiler)
 {
     if (match(compiler, TK_ECHO)) {
         echoStatement(compiler);
+    } else if (match(compiler, TK_FOR)) {
+        forStatement(compiler);
+    } else if (match(compiler, TK_IF)) {
+        ifStatement(compiler);
+    } else if (match(compiler, TK_WHILE)) {
+        whileStatement(compiler);
     } else if (match(compiler, TK_LBRACE)) {
         beginScope(compiler);
         block(compiler);
@@ -401,6 +569,28 @@ statement(Compiler *compiler)
     } else {
         expressionStatement(compiler);
     }
+}
+
+static void
+_and(Compiler *compiler, bool canAssign)
+{
+    int endJump = emitJump(compiler, OP_JUMP_FALSE);
+    emitByte(compiler, OP_POP);
+    parsePrecedence(compiler, PREC_AND);
+    patchJump(compiler, endJump);
+}
+
+static void
+_or(Compiler *compiler, bool canAssign)
+{
+    int elseJump = emitJump(compiler, OP_JUMP_FALSE);
+    int endJump = emitJump(compiler, OP_JUMP);
+
+    patchJump(compiler, elseJump);
+    emitByte(compiler, OP_POP);
+
+    parsePrecedence(compiler, PREC_OR);
+    patchJump(compiler, endJump);
 }
 
 ParseRule rules[] = {
@@ -443,7 +633,7 @@ ParseRule rules[] = {
     [TK_IDENTIFIER] = { variable,   NULL,   PREC_NONE },
     [TK_STRING]     = { string,     NULL,   PREC_NONE },
     [TK_NUMBER]     = { number,     NULL,   PREC_NONE },
-    [TK_AND]        = { NULL,       NULL,   PREC_NONE },
+    [TK_AND]        = { NULL,       _and,   PREC_AND },
     [TK_BREAK]      = { NULL,       NULL,   PREC_NONE },
     [TK_CLASS]      = { NULL,       NULL,   PREC_NONE },
     [TK_CONST]      = { NULL,       NULL,   PREC_NONE },
@@ -455,14 +645,14 @@ ParseRule rules[] = {
     [TK_FOR]        = { NULL,       NULL,   PREC_NONE },
     [TK_FN]         = { NULL,       NULL,   PREC_NONE },
     [TK_IF]         = { NULL,       NULL,   PREC_NONE },
+    [TK_INCLUDE]    = { NULL,       NULL,   PREC_NONE },
     [TK_MODULE]     = { NULL,       NULL,   PREC_NONE },
     [TK_NULL]       = { literal,    NULL,   PREC_NONE },
-    [TK_OR]         = { NULL,       NULL,   PREC_NONE },
+    [TK_OR]         = { NULL,       _or,    PREC_OR },
     [TK_RETURN]     = { NULL,       NULL,   PREC_NONE },
     [TK_SELF]       = { NULL,       NULL,   PREC_NONE },
     [TK_SUPER]      = { NULL,       NULL,   PREC_NONE },
     [TK_TRUE]       = { literal,    NULL,   PREC_NONE },
-    [TK_USING]      = { NULL,       NULL,   PREC_NONE },
     [TK_VAR]        = { NULL,       NULL,   PREC_NONE },
     [TK_WHILE]      = { NULL,       NULL,   PREC_NONE },
     [TK_ERROR]      = { NULL,       NULL,   PREC_NONE },

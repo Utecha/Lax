@@ -6,10 +6,11 @@
 
 // Very simple REPL for interpreting code.
 // Not super useful for testing functions or classes in its current state.
+// That really goes for any block, to be honest.
 static void
 repl(VM *vm)
 {
-    char line[1024];
+    char line[2048];
     for (;;) {
         printf(">>> ");
 

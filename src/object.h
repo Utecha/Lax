@@ -1,7 +1,8 @@
 #ifndef LAX_OBJECT_H
 #define LAX_OBJECT_H
 
-#include "common.h"
+#include "chunk.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -20,7 +21,7 @@ struct Obj {
 };
 
 struct ObjString {
-    Obj obj;
+    struct Obj obj;
     int length;
     char *chars;
     uint32_t hash;

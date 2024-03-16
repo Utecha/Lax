@@ -239,6 +239,7 @@ For now, I will slowly be updating this version bit by bit with small new featur
 
 - [lax 0.0.5](#lax-005)
 - [lax 0.0.75](#lax-0075)
+- [lax 0.1.0](#lax-010)
 
 ### lax 0.0.5
 
@@ -259,3 +260,15 @@ Due to that, I will likely do either one of two things: make a separate standalo
 ### lax 0.0.75
 
 Gonna put a minor update in here since variables, both global and local have been added. That also means global vs local scoping has been implemented. Hash tables were introduced to store variable definitions as well as strings. Strings are denoted only with double quotes (""). Concatenation is supported, though only between two or more strings. There is no support for escape sequences or string interpolation currently. That last one I'm not 100% sure of how to go about implementing, the former though I just haven't added support yet. Should be supported by version '0.1.0'.
+
+### lax 0.1.0
+
+Hooray! We're back to a reasonable point. As in...
+
+- Added logical 'and' and 'or' (as literals and using '&&' or '||')
+- Added if statements, while, and for loops
+- Plus everything from before
+
+At this point, the language is about as complete as a BASIC-like language, though the syntax is more C-like. One could actually argue it is more like JS since it is dynamically typed, though 'var' in this language is not as dangerous as apparently is in JS.
+
+The next update will add functions to the mix. It will also probably take a little longer to work on as I plan on doing a MAJOR overhaul and refactor to the codebase. Some things will be split up and others will be combined. Some implementations may also possibly change though I may hold off on that for now. Regardless, it should be much easier to go through and much more suited to my later goals of adding a native compiler for the language.

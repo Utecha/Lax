@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "memory.h"
+#include "object.h"
 #include "table.h"
 
 #define TABLE_MAX_LOAD 0.75

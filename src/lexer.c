@@ -179,7 +179,14 @@ identifierType(Lexer *l)
                 }
             }
         } break;
-        case 'i':   return checkKeyword(l, 1, 1, "f", TK_IF);
+        case 'i': {
+            if (l->current - l->start > 1) {
+                switch (l->start[1]) {
+                    case 'f':   return checkKeyword(l, 2, 0, "", TK_IF);
+                    case 'n':   return checkKeyword(l, 2, 5, "clude", TK_INCLUDE);
+                }
+            }
+        } break;
         case 'm':   return checkKeyword(l, 1, 5, "odule", TK_MODULE);
         case 'n':   return checkKeyword(l, 1, 3, "ull", TK_NULL);
         case 'o':   return checkKeyword(l, 1, 1, "r", TK_OR);
@@ -193,7 +200,6 @@ identifierType(Lexer *l)
             }
         } break;
         case 't':   return checkKeyword(l, 1, 3, "rue", TK_TRUE);
-        case 'u':   return checkKeyword(l, 1, 4, "sing", TK_USING);
         case 'v':   return checkKeyword(l, 1, 2, "ar", TK_VAR);
         case 'w':   return checkKeyword(l, 1, 4, "hile", TK_WHILE);
     }
@@ -264,9 +270,9 @@ scanToken(Lexer *l)
         case '%':   return makeToken(l, TK_MODULUS);
         case '=':   return makeToken(l, match(l, '=') ? TK_EQEQ : TK_EQ);
         case '!':   return makeToken(l, match(l, '=') ? TK_BANGEQ : TK_BANG);
-        case '&':   return makeToken(l, TK_BAND);
+        case '&':   return makeToken(l, match(l, '&') ? TK_AND : TK_BAND);
+        case '|':   return makeToken(l, match(l, '|') ? TK_OR : TK_BOR);
         case '^':   return makeToken(l, TK_BXOR);
-        case '|':   return makeToken(l, TK_BOR);
         case '/': {
             if (match(l, '=')) {
                 return makeToken(l, TK_SLASHEQ);

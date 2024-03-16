@@ -237,7 +237,8 @@ For now, I will slowly be updating this version bit by bit with small new featur
 
 ## LAX
 
-- [lax 0.0.5](#lax000)
+- [lax 0.0.5](#lax-005)
+- [lax 0.0.75](#lax-0075)
 
 ### lax 0.0.5
 
@@ -251,6 +252,10 @@ However, plans in regards to how I am going to split up modules has definitely c
 
 For one, I have decided not to separate the tokens from the lexer. There wasn't much of a need since they're just in the header and not the source file anyways.
 
-It turns out I had forgotten just how intertwined the parser and compiler are. I would have to make just about everything accessible outside their respective modules in order to do so which I'm not sure is the best move. Not to mention, the parsing functions themselves are directly tied to the compiler. They are responsible for handling the actual emission of the bytecode. The compiler itself really only consists of the functions to emit the bytes, and the 'compile' function that instantiates everything beneath it and runs it all.
+When in comes to the parser, it is very deeply intertwined with the bytecode compiler. It would be quite difficult to separate the two and make the parser more generalized, plus it would likely mean the parser would become much more bloated to handle various use cases.
 
-With that in mind, I will likely end up writing a standalone parser for this project to use when I go to implement native compilation.
+Due to that, I will likely do either one of two things: make a separate standalone parser specifically for native compilation, or - what I might actually do - is use the bytecode compiler as the first step, and then natively compile from the bytecode. That honestly sounds like the better path.
+
+### lax 0.0.75
+
+Gonna put a minor update in here since variables, both global and local have been added. That also means global vs local scoping has been implemented. Hash tables were introduced to store variable definitions as well as strings. Strings are denoted only with double quotes (""). Concatenation is supported, though only between two or more strings. There is no support for escape sequences or string interpolation currently. That last one I'm not 100% sure of how to go about implementing, the former though I just haven't added support yet. Should be supported by version '0.1.0'.

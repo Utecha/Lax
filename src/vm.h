@@ -34,6 +34,18 @@ typedef enum {
 } InterpretResult;
 
 /*
+ * Pushes a 'Value' onto the top of the VM stack.
+*/
+void
+push(VM *vm, Value value);
+
+/*
+ * Pops a 'Value' from the top of the VM stack.
+*/
+Value
+pop(VM *vm);
+
+/*
  * Initializes the data for the VM.
 */
 VM *
@@ -53,11 +65,5 @@ freeVM(VM *vm);
 */
 InterpretResult
 interpret(VM *vm, const char *src);
-
-void
-push(VM *vm, Value value);
-
-Value
-pop(VM *vm);
 
 #endif // LAX_VM_H

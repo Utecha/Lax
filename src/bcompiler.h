@@ -30,9 +30,21 @@ typedef enum {
     PREC_PRIMARY
 } Precedence;
 
+typedef struct {
+    Token name;
+    int depth;
+} Local;
+
 typedef struct Compiler {
+    // Parser & currently compiling Chunk
     Parser *parser;
     Chunk *compiling;
+
+    // Data for local variables
+    Local locals[UINT8_COUNT];
+    int localCount;
+
+    int scopeDepth; // Depth of variable scope. 0 = global
 } Compiler;
 
 typedef void (*ParseFn)(Compiler *compiler, bool canAssign);

@@ -35,6 +35,8 @@ typedef enum {
     OP_SHL,
     OP_SHR,
     OP_NEGATE,
+    OP_INCREMENT,
+    OP_DECREMENT,
     OP_ECHO,
     OP_JUMP,
     OP_JUMP_FALSE,

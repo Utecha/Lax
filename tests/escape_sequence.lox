@@ -1,0 +1,5 @@
+echo "\tHello tabbed!";
+echo "\vHello vertically tabbed!";
+echo "Hello\b minus the o because of backspace";
+echo "Hello windows path C:\\";
+echo "Hello!\nThe rest of this will be on a new line.";

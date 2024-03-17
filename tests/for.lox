@@ -1,11 +1,9 @@
-var fib = 40;
 var a = 0;
 var b = 1;
 
-while (fib > 0) {
-    print a;
+for (var fibc = 40; fibc > 0; fibc = fibc - 1) {
+    echo a;
     var c = a + b;
     a = b;
     b = c;
-    fib = fib - 1;
 }

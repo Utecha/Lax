@@ -358,6 +358,14 @@ namedVariable(Compiler *compiler, Token name, bool canAssign)
     if (canAssign && match(compiler, TK_EQ)) {
         expression(compiler);
         emitBytes(compiler, setOp, (uint8_t)arg);
+    } else if (canAssign && match(compiler, TK_INC)) {
+        namedVariable(compiler, name, false);
+        emitByte(compiler, OP_INCREMENT);
+        emitBytes(compiler, setOp, (uint8_t)arg);
+    } else if (canAssign && match(compiler, TK_DEC)) {
+        namedVariable(compiler, name, false);
+        emitByte(compiler, OP_DECREMENT);
+        emitBytes(compiler, setOp, (uint8_t)arg);
     } else {
         emitBytes(compiler, getOp, (uint8_t)arg);
     }
@@ -373,6 +381,7 @@ static void
 unary(Compiler *compiler, bool canAssign)
 {
     TokenType opType = compiler->parser->previous.type;
+
     parsePrecedence(compiler, PREC_UNARY);
 
     switch (opType) {
@@ -527,6 +536,8 @@ synchronize(Parser *parser)
             case TK_FN:
             case TK_FOR:
             case TK_IF:
+            case TK_INCLUDE:
+            case TK_MODULE:
             case TK_RETURN:
             case TK_VAR:
             case TK_WHILE:
@@ -594,69 +605,70 @@ _or(Compiler *compiler, bool canAssign)
 }
 
 ParseRule rules[] = {
-    [TK_LPAREN]     = { grouping,   NULL,   PREC_NONE },
-    [TK_RPAREN]     = { NULL,       NULL,   PREC_NONE },
-    [TK_RBRACE]     = { NULL,       NULL,   PREC_NONE },
-    [TK_LBRACE]     = { NULL,       NULL,   PREC_NONE },
-    [TK_RBRACK]     = { NULL,       NULL,   PREC_NONE },
-    [TK_LBRACK]     = { NULL,       NULL,   PREC_NONE },
-    [TK_COMMA]      = { NULL,       NULL,   PREC_NONE },
-    [TK_DOT]        = { NULL,       NULL,   PREC_NONE },
-    [TK_QUESTION]   = { NULL,       NULL,   PREC_NONE },
-    [TK_COLON]      = { NULL,       NULL,   PREC_NONE },
-    [TK_SEMICOLON]  = { NULL,       NULL,   PREC_NONE },
-    [TK_MINUS]      = { unary,      binary, PREC_TERM },
-    [TK_PLUS]       = { NULL,       binary, PREC_TERM },
-    [TK_SLASH]      = { NULL,       binary, PREC_FACTOR },
-    [TK_STAR]       = { NULL,       binary, PREC_FACTOR },
-    [TK_MODULUS]    = { NULL,       binary, PREC_FACTOR },
-    [TK_POWER]      = { NULL,       binary, PREC_UNARY },
-    [TK_BANG]       = { unary,      NULL,   PREC_NONE },
-    [TK_BANGEQ]     = { NULL,       binary, PREC_EQUALITY },
-    [TK_EQEQ]       = { NULL,       binary, PREC_EQUALITY },
-    [TK_GREATER]    = { NULL,       binary, PREC_COMPARISON },
-    [TK_GTEQ]       = { NULL,       binary, PREC_COMPARISON },
-    [TK_LESS]       = { NULL,       binary, PREC_COMPARISON },
-    [TK_LTEQ]       = { NULL,       binary, PREC_COMPARISON },
-    [TK_BAND]       = { NULL,       binary, PREC_BITWISE },
-    [TK_BOR]        = { NULL,       binary, PREC_BITWISE },
-    [TK_BXOR]       = { NULL,       binary, PREC_BITWISE },
-    [TK_SHL]        = { NULL,       binary, PREC_BITWISE },
-    [TK_SHR]        = { NULL,       binary, PREC_BITWISE },
-    [TK_INC]        = { NULL,       NULL,   PREC_NONE },
-    [TK_DEC]        = { NULL,       NULL,   PREC_NONE },
-    [TK_MINUSEQ]    = { NULL,       NULL,   PREC_NONE },
-    [TK_PLUSEQ]     = { NULL,       NULL,   PREC_NONE },
-    [TK_SLASHEQ]    = { NULL,       NULL,   PREC_NONE },
-    [TK_STAREQ]     = { NULL,       NULL,   PREC_NONE },
-    [TK_EQ]         = { NULL,       NULL,   PREC_NONE },
-    [TK_IDENTIFIER] = { variable,   NULL,   PREC_NONE },
-    [TK_STRING]     = { string,     NULL,   PREC_NONE },
-    [TK_NUMBER]     = { number,     NULL,   PREC_NONE },
-    [TK_AND]        = { NULL,       _and,   PREC_AND },
-    [TK_BREAK]      = { NULL,       NULL,   PREC_NONE },
-    [TK_CLASS]      = { NULL,       NULL,   PREC_NONE },
-    [TK_CONST]      = { NULL,       NULL,   PREC_NONE },
-    [TK_CONTINUE]   = { NULL,       NULL,   PREC_NONE },
-    [TK_DO]         = { NULL,       NULL,   PREC_NONE },
-    [TK_ELSE]       = { NULL,       NULL,   PREC_NONE },
-    [TK_ECHO]       = { NULL,       NULL,   PREC_NONE },
-    [TK_FALSE]      = { literal,    NULL,   PREC_NONE },
-    [TK_FOR]        = { NULL,       NULL,   PREC_NONE },
-    [TK_FN]         = { NULL,       NULL,   PREC_NONE },
-    [TK_IF]         = { NULL,       NULL,   PREC_NONE },
-    [TK_INCLUDE]    = { NULL,       NULL,   PREC_NONE },
-    [TK_MODULE]     = { NULL,       NULL,   PREC_NONE },
-    [TK_NULL]       = { literal,    NULL,   PREC_NONE },
-    [TK_OR]         = { NULL,       _or,    PREC_OR },
-    [TK_RETURN]     = { NULL,       NULL,   PREC_NONE },
-    [TK_SELF]       = { NULL,       NULL,   PREC_NONE },
-    [TK_SUPER]      = { NULL,       NULL,   PREC_NONE },
-    [TK_TRUE]       = { literal,    NULL,   PREC_NONE },
-    [TK_VAR]        = { NULL,       NULL,   PREC_NONE },
-    [TK_WHILE]      = { NULL,       NULL,   PREC_NONE },
-    [TK_ERROR]      = { NULL,       NULL,   PREC_NONE },
-    [TK_EOF]        = { NULL,       NULL,   PREC_NONE },
+    [TK_LPAREN]     = { grouping,   NULL,       PREC_NONE },
+    [TK_RPAREN]     = { NULL,       NULL,       PREC_NONE },
+    [TK_RBRACE]     = { NULL,       NULL,       PREC_NONE },
+    [TK_LBRACE]     = { NULL,       NULL,       PREC_NONE },
+    [TK_RBRACK]     = { NULL,       NULL,       PREC_NONE },
+    [TK_LBRACK]     = { NULL,       NULL,       PREC_NONE },
+    [TK_COMMA]      = { NULL,       NULL,       PREC_NONE },
+    [TK_DOT]        = { NULL,       NULL,       PREC_NONE },
+    [TK_QUESTION]   = { NULL,       NULL,       PREC_NONE },
+    [TK_COLON]      = { NULL,       NULL,       PREC_NONE },
+    [TK_SEMICOLON]  = { NULL,       NULL,       PREC_NONE },
+    [TK_MINUS]      = { unary,      binary,     PREC_TERM },
+    [TK_PLUS]       = { NULL,       binary,     PREC_TERM },
+    [TK_SLASH]      = { NULL,       binary,     PREC_FACTOR },
+    [TK_STAR]       = { NULL,       binary,     PREC_FACTOR },
+    [TK_MODULUS]    = { NULL,       binary,     PREC_FACTOR },
+    [TK_POWER]      = { NULL,       binary,     PREC_UNARY },
+    [TK_BANG]       = { unary,      NULL,       PREC_NONE },
+    [TK_BANGEQ]     = { NULL,       binary,     PREC_EQUALITY },
+    [TK_EQEQ]       = { NULL,       binary,     PREC_EQUALITY },
+    [TK_GREATER]    = { NULL,       binary,     PREC_COMPARISON },
+    [TK_GTEQ]       = { NULL,       binary,     PREC_COMPARISON },
+    [TK_LESS]       = { NULL,       binary,     PREC_COMPARISON },
+    [TK_LTEQ]       = { NULL,       binary,     PREC_COMPARISON },
+    [TK_BAND]       = { NULL,       binary,     PREC_BITWISE },
+    [TK_BOR]        = { NULL,       binary,     PREC_BITWISE },
+    [TK_BXOR]       = { NULL,       binary,     PREC_BITWISE },
+    [TK_SHL]        = { NULL,       binary,     PREC_BITWISE },
+    [TK_SHR]        = { NULL,       binary,     PREC_BITWISE },
+    [TK_INC]        = { NULL,       NULL,       PREC_NONE },
+    [TK_DEC]        = { NULL,       NULL,       PREC_NONE },
+    [TK_MINUSEQ]    = { NULL,       NULL,       PREC_NONE },
+    [TK_PLUSEQ]     = { NULL,       NULL,       PREC_NONE },
+    [TK_SLASHEQ]    = { NULL,       NULL,       PREC_NONE },
+    [TK_STAREQ]     = { NULL,       NULL,       PREC_NONE },
+    [TK_EQ]         = { NULL,       NULL,       PREC_NONE },
+    [TK_IDENTIFIER] = { variable,   NULL,       PREC_NONE },
+    [TK_STRING]     = { string,     NULL,       PREC_NONE },
+    [TK_NUMBER]     = { number,     NULL,       PREC_NONE },
+    [TK_AND]        = { NULL,       _and,       PREC_AND },
+    [TK_BREAK]      = { NULL,       NULL,       PREC_NONE },
+    [TK_CLASS]      = { NULL,       NULL,       PREC_NONE },
+    [TK_CONST]      = { NULL,       NULL,       PREC_NONE },
+    [TK_CONTINUE]   = { NULL,       NULL,       PREC_NONE },
+    [TK_DO]         = { NULL,       NULL,       PREC_NONE },
+    [TK_ELSE]       = { NULL,       NULL,       PREC_NONE },
+    [TK_ECHO]       = { NULL,       NULL,       PREC_NONE },
+    [TK_FALSE]      = { literal,    NULL,       PREC_NONE },
+    [TK_FOR]        = { NULL,       NULL,       PREC_NONE },
+    [TK_FN]         = { NULL,       NULL,       PREC_NONE },
+    [TK_IF]         = { NULL,       NULL,       PREC_NONE },
+    [TK_INCLUDE]    = { NULL,       NULL,       PREC_NONE },
+    [TK_MODULE]     = { NULL,       NULL,       PREC_NONE },
+    [TK_NULL]       = { literal,    NULL,       PREC_NONE },
+    [TK_OR]         = { NULL,       _or,        PREC_OR },
+    [TK_RETURN]     = { NULL,       NULL,       PREC_NONE },
+    [TK_SELF]       = { NULL,       NULL,       PREC_NONE },
+    [TK_SUPER]      = { NULL,       NULL,       PREC_NONE },
+    [TK_TRUE]       = { literal,    NULL,       PREC_NONE },
+    [TK_VAR]        = { NULL,       NULL,       PREC_NONE },
+    [TK_WHILE]      = { NULL,       NULL,       PREC_NONE },
+    [TK_ERROR]      = { NULL,       NULL,       PREC_NONE },
+    [TK_EOF]        = { NULL,       NULL,       PREC_NONE },
+    [TK_COUNT]      = { NULL,       NULL,       PREC_NONE },
 };
 
 static ParseRule *

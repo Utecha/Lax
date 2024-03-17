@@ -19,21 +19,21 @@ For now, you're stuck with my implementation of clox with some extra features ad
 
 ## Upcoming
 
-- Dynamic Arrays
-- Maps
-- More built-in functions such as: printf, system, exit
-- Bitwise operators
-- Ternary operators
-- String interpolation
-- Support for escape sequences in strings
-- Native compilation
-- Static typing for the native compiler
-- Structs as a separate object -- Will ultimately be functionally the same as C++
-- Built-in support for enums. Likely C/C++ style enums.
-- Module support (currently Lax/clox programs only support a single source file)
-- Macros
-- Properly implemented pre and post increment/decrement operators (current implementation mostly works but is a bit buggy)
-- Built-in support for variadic arguments to functions/methods
+- [x] Bitwise operators
+- [ ] Pre/post increment/decrement operators
+- [ ] Ternary operator
+- [x] Support for escape sequences in strings
+- [ ] String interpolation
+- [ ] Dynamic Arrays
+- [ ] Maps
+- [ ] More built-in functions such as: printf, system, exit
+- [ ] Built-in support for variadic arguments to functions/methods
+- [ ] Structs as a separate object -- Will ultimately be functionally the same as C++
+- [ ] Built-in support for enums. Likely C/C++ style enums.
+- [ ] Module support (currently Lax/clox programs only support a single source file)
+- [ ] Macros
+- [ ] Native compilation
+- [ ] Static typing for the native compiler
 
 ## Features
 

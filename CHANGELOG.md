@@ -267,6 +267,7 @@ Hooray! We're back to a reasonable point. As in...
 
 - Added logical 'and' and 'or' (as literals and using '&&' or '||')
 - Added if statements, while, and for loops
+- Increment and decrement ops (syntactically only post for now)
 - Plus everything from before
 
 At this point, the language is about as complete as a BASIC-like language, though the syntax is more C-like. One could actually argue it is more like JS since it is dynamically typed, though 'var' in this language is not as dangerous as apparently is in JS.

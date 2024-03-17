@@ -1,0 +1,21 @@
+var a = "outer a";
+var b = "outer b";
+var c = "outer c";
+{
+    var a = "middle a";
+    var b = "middle b";
+    {
+        var a = "inner a";
+        var c = "inner c";
+
+        echo a;
+        echo b;
+        echo c;
+    }
+    echo a;
+    echo b;
+    echo c;
+}
+echo a;
+echo b;
+echo c;

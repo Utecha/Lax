@@ -1,0 +1,11 @@
+var fibc = 40;
+var a = 0;
+var b = 1;
+
+while (fibc > 0) {
+    echo a;
+    var c = a + b;
+    a = b;
+    b = c;
+    fibc = fibc - 1;
+}

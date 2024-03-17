@@ -234,6 +234,24 @@ run(VM *vm)
                 }
                 push(vm, NUMBER_VAL(-AS_NUMBER(*(--vm->stackTop))));
             } break;
+            case OP_INCREMENT: {
+                if (!IS_NUMBER(peek(vm, 0))) {
+                    runtimeError(vm, "Operand must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                push(vm, NUMBER_VAL(AS_NUMBER(*(--vm->stackTop)) + 1));
+                // push(vm, NUMBER_VAL(AS_NUMBER(pop(vm)) + 1));
+            } break;
+            case OP_DECREMENT: {
+                if (!IS_NUMBER(peek(vm, 0))) {
+                    runtimeError(vm, "Operand must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+
+                push(vm, NUMBER_VAL(AS_NUMBER(*(--vm->stackTop)) - 1));
+                // push(vm, NUMBER_VAL(AS_NUMBER(pop(vm)) - 1));
+            } break;
             case OP_ECHO: {
                 printValue(*(--vm->stackTop));
                 printf("\n");

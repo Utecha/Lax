@@ -1,0 +1,6 @@
+var a;
+echo a;      // Expect value = 'null'
+
+var b = 0;
+a = b + 69;
+echo a;     // Expect value = 69

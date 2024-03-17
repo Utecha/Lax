@@ -1,86 +1,108 @@
-CFLAGS := -Wall -Wextra -Wno-unused-parameter -std=c99
-DBGFLAGS := -DDEBUG -ggdb
+CC = gcc
+CFLAGS = -std=c99 -Wall -Wextra -Wno-unused-parameter -lm
+DBG_FLAGS := -DDEBUG -ggdb -O0
+REL_FLAGS := -O3
 
-CLOX_DIR := lox
-CLOX := clox
-CLOXDB := cloxdb
-LAX_DIR := src
-LAX := lax
-LAXDB := laxdb
-CLOX_HEADERS := $(wildcard $(CLOX_DIR)/*.h)
-CLOX_SOURCES := $(wildcard $(CLOX_DIR)/*.c)
-HEADERS := $(wildcard $(LAX_DIR)/*.h)
-SOURCES := $(wildcard $(LAX_DIR)/*.c)
-RELEASE := build/release
-DEBUG := build/debug
-CLOX_OBJDUMP := build/objdump/clox
-LAX_OBJDUMP := build/objdump/lax
+SRCDIR = src
+BUILDDIR = build
 
-default: lax laxdbg
+OBJDIR := $(SRCDIR)/obj
+DBGDIR := $(BUILDDIR)/debug
+RELDIR := $(BUILDDIR)/release
 
-both: clox lax
+SRC := $(wildcard $(SRCDIR)/*.c)
+OBJ := $(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRC))
 
-bothdbg: cloxdbg laxdbg
+CLOX_SRCDIR = lox
 
-lax: laxpch
-	@ mkdir -p $(RELEASE)
-	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(LAX) $(SOURCES) -lm
-	@ cp $(RELEASE)/$(LAX) .
+CLOX_OBJDIR := $(CLOX_SRCDIR)/obj
+CLOX_DBGDIR := $(BUILDDIR)/clox/debug
+CLOX_RELDIR := $(BUILDDIR)/clox/release
 
-laxdbg: laxpch
-	@ mkdir -p $(DEBUG)
-	gcc $(CFLAGS) -DDEBUG -ggdb -O0 -o $(DEBUG)/$(LAXDB) $(SOURCES) -lm
+CLOX_SRC := $(wildcard $(CLOX_SRCDIR)/*.c)
+CLOX_OBJ := $(patsubst $(CLOX_SRCDIR)/%.c, $(CLOX_OBJDIR)/%.o, $(CLOX_SRC))
 
-laxdump:
-	@ mkdir -p $(LAX_OBJDUMP)
-	gcc -o $(LAX_OBJDUMP)/$(LAX).o -c $(LAX_DIR)/$(LAX).c
-	gcc -o $(LAX_OBJDUMP)/bcompiler.o -c $(LAX_DIR)/bcompiler.c
-	gcc -o $(LAX_OBJDUMP)/chunk.o -c $(LAX_DIR)/chunk.c
-	gcc -o $(LAX_OBJDUMP)/debug.o -c $(LAX_DIR)/debug.c
-	gcc -o $(LAX_OBJDUMP)/lexer.o -c $(LAX_DIR)/lexer.c
-	gcc -o $(LAX_OBJDUMP)/log.o -c $(LAX_DIR)/log.c
-	gcc -o $(LAX_OBJDUMP)/memory.o -c $(LAX_DIR)/memory.c
-	gcc -o $(LAX_OBJDUMP)/object.o -c $(LAX_DIR)/object.c
-	gcc -o $(LAX_OBJDUMP)/parser.o -c $(LAX_DIR)/parser.c
-	gcc -o $(LAX_OBJDUMP)/read.o -c $(LAX_DIR)/read.c
-	gcc -o $(LAX_OBJDUMP)/table.o -c $(LAX_DIR)/table.c
-	gcc -o $(LAX_OBJDUMP)/value.o -c $(LAX_DIR)/value.c
-	gcc -o $(LAX_OBJDUMP)/vm.o -c $(LAX_DIR)/vm.c
+INSTALLDIR := /usr/local/bin
 
-laxpch:
-	@ gcc $(SOURCES) $(HEADERS) -lm
-	@ rm a.out
+TARGET = lax
+DBG_TARGET := $(DBGDIR)/$(TARGET)db
+REL_TARGET := $(RELDIR)/$(TARGET)
 
-clox: cloxpch
-	@ mkdir -p $(RELEASE)
-	gcc $(CFLAGS) -O3 -o $(RELEASE)/$(CLOX) $(CLOX_SOURCES) -lm
-	@ cp $(RELEASE)/$(CLOX) .
+CLOX_TARG = clox
+CLOX_DBG_TARG := $(CLOX_DBGDIR)/$(CLOX_TARG)db
+CLOX_REL_TARG := $(CLOX_RELDIR)/$(CLOX_TARG)
 
-cloxdbg: cloxpch
-	@ mkdir -p $(DEBUG)
-	gcc $(CFLAGS) $(DBGFLAGS) -O0 -o $(DEBUG)/$(CLOXDB) $(CLOX_SOURCES) -lm
+all: release clox_rel
 
-cloxpch:
-	@ gcc $(CLOX_SOURCES) $(CLOX_HEADERS) -lm
-	@ rm a.out
+release: $(REL_TARGET) | $(RELDIR)
+	@ cp $(REL_TARGET) ./
 
-cloxdump:
-	@ mkdir -p $(CLOX_OBJDUMP)
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX).o -c $(CLOX_DIR)/$(CLOX).c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_bcompiler.o -c $(CLOX_DIR)/$(CLOX)_bcompiler.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_chunk.o -c $(CLOX_DIR)/$(CLOX)_chunk.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_debug.o -c $(CLOX_DIR)/$(CLOX)_debug.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_memory.o -c $(CLOX_DIR)/$(CLOX)_memory.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_object.o -c $(CLOX_DIR)/$(CLOX)_object.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_scanner.o -c $(CLOX_DIR)/$(CLOX)_scanner.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_table.o -c $(CLOX_DIR)/$(CLOX)_table.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_value.o -c $(CLOX_DIR)/$(CLOX)_value.c
-	gcc -o $(CLOX_OBJDUMP)/$(CLOX)_vm.o -c $(CLOX_DIR)/$(CLOX)_vm.c
+clox_rel: $(CLOX_REL_TARG) | $(CLOX_RELDIR)
+	@ cp $(CLOX_REL_TARG) ./
+
+debug: $(DBG_TARGET) | $(DBGDIR)
+
+clox_dbg: $(CLOX_DBG_TARG) | $(CLOX_DBGDIR)
+
+install: release
+	@ printf "Copying lax to [%s]\n" $(INSTALLDIR); \
+	sudo cp $(REL_TARGET) $(INSTALLDIR) && \
+	printf "\033[1;32mInstall Successful -- %s -> [%s/%s]\033[0m\n\n" $(REL_TARGET) $(INSTALLDIR) $(TARGET)
+
+uninstall: clean
+	@ printf "\033[1;33mRemoving\033[0m lax from [%s]\n" $(INSTALLDIR); \
+	sudo rm $(INSTALLDIR)/$(TARGET) && \
+	printf "\033[1;32mUNINSTALL SUCCESS\033[0m\n\n"
 
 clean:
-	@ rm -f $(RELEASE)/*
-	@ rm -f $(DEBUG)/*
-	@ rm -f $(CLOX_OBJDUMP)/*
-	# @ rm -f $(LAX_OBJDUMP)/*
-	@ rm $(CLOX)
-	# @ rm $(LAX)
+	@ echo "Cleaning lax..."; \
+	rm -rf $(OBJDIR) $(BUILDDIR) $(CLOX_OBJDIR); \
+	if [ -e $(TARGET) ]; then \
+		rm $(TARGET); \
+		rm $(CLOX_TARG); \
+	fi; \
+	echo "Cleaned lax successfully!"
+
+$(DBG_TARGET): $(OBJ) | $(DBGDIR)
+	$(CC) $(DBG_FLAGS) $(CFLAGS) $^ -o $@
+
+$(REL_TARGET): $(OBJ) | $(RELDIR)
+	$(CC) $(REL_FLAGS) $(CFLAGS) $^ -o $@
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
+	@ printf "%-8s: %-16s --> %s\n" "compiling" $< $@; \
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(CLOX_DBG_TARG): $(CLOX_OBJ) | $(CLOX_DBGDIR)
+	$(CC) $(DBG_FLAGS) $(CFLAGS) $^ -o $@
+
+$(CLOX_REL_TARG): $(CLOX_OBJ) | $(CLOX_RELDIR)
+	$(CC) $(REL_FLAGS) $(CFLAGS) $^ -o $@
+
+$(CLOX_OBJDIR)/%.o: $(CLOX_SRCDIR)/%.c | $(CLOX_OBJDIR)
+	@ printf "%-8s: %-16s --> %s\n" "compiling" $< $@; \
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJDIR):
+	@ mkdir -p $(OBJDIR)
+
+$(DBGDIR):
+	@ mkdir -p $(DBGDIR)
+
+$(RELDIR):
+	@ mkdir -p $(RELDIR)
+
+$(CLOX_OBJDIR):
+	@ mkdir -p $(CLOX_OBJDIR)
+
+$(CLOX_DBGDIR):
+	@ mkdir -p $(CLOX_DBGDIR)
+
+$(CLOX_RELDIR):
+	@ mkdir -p $(CLOX_RELDIR)
+
+$(BUILDDIR):
+	@ mkdir -p $(BUILDDIR)
+
+.PHONY: all clean release install uninstall clox_rel
+.DEFAULT: all

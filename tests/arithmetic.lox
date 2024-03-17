@@ -1,0 +1,6 @@
+echo 34 + 35;        // Expect 69
+echo 500 - 80;       // Expect 420
+echo 3 * 23;         // Expect 69
+echo 28_980 / 69;    // Expect 420
+echo 420 % 69;       // Expect 6
+echo 2 ** 9 - 92;    // Expect 420

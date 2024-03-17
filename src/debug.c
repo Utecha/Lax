@@ -98,6 +98,8 @@ disassembleInstruction(Chunk *chunk, int offset)
         case OP_SHL:            return simpleInstruction("OP_SHL", offset);
         case OP_SHR:            return simpleInstruction("OP_SHR", offset);
         case OP_NEGATE:         return simpleInstruction("OP_NEGATE", offset);
+        case OP_INCREMENT:      return simpleInstruction("OP_INCREMENT", offset);
+        case OP_DECREMENT:      return simpleInstruction("OP_DECREMENT", offset);
         case OP_ECHO:           return simpleInstruction("OP_ECHO", offset);
         case OP_JUMP:           return jumpInstruction("OP_JUMP", 1, chunk, offset);
         case OP_JUMP_FALSE:     return jumpInstruction("OP_JUMP_FALSE", 1, chunk, offset);

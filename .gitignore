@@ -1,11 +1,8 @@
-build/debug/*
-build/objdump/*
-build/release/*
+build/
+compiler_tests/
+lox/obj
+src/obj
+srcbak/
+tests_old/
 clox
-cloxdb
 lax
-laxdb
-lox/*.gch
-src/*.gch
-tests/count_tt
-tests/count_tt.c

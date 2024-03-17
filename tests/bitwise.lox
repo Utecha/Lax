@@ -1,0 +1,5 @@
+echo 34 << 2;   // Expect 136
+echo 35 >> 2;   // Expect 8
+echo 420 & 69;  // Expect 4
+echo 420 | 69;  // Expect 485
+echo 420 ^ 69;  // Expect 481

@@ -10,7 +10,7 @@
 static void
 repl(VM *vm)
 {
-    char line[2048];
+    char line[1024];
     for (;;) {
         printf(">>> ");
 
